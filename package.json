@@ -4,7 +4,7 @@
   "description": "PWA para gestión de compras escolares sin efectivo",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node seed.js && node server.js",
     "dev": "node server.js"
   },
   "dependencies": {

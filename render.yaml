@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: kiosco-escolar
+    env: node
+    buildCommand: npm install
+    startCommand: node seed.js && node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18

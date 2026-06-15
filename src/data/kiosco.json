@@ -229,6 +229,16 @@
       "activo": true,
       "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
       "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "d9b8e779-128c-4a25-b376-a67bec344089",
+      "nombre": "Tofi",
+      "categoria": "Golosinas",
+      "precio": 1500,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T03:29:37.430Z"
     }
   ],
   "compras": [
@@ -393,6 +403,62 @@
       "detalle": "Inicio de sesión: padre@kiosco.com",
       "ip": "::1",
       "createdAt": "2026-06-15T03:01:58.225Z"
+    },
+    {
+      "id": "d348adda-0b50-4aac-9a60-1b8ec54baee8",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "192.168.1.2",
+      "createdAt": "2026-06-15T03:09:37.200Z"
+    },
+    {
+      "id": "4c0e91ec-95d2-4913-8f12-7d1fc91c31cd",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "192.168.1.2",
+      "createdAt": "2026-06-15T03:39:57.833Z"
+    },
+    {
+      "id": "1c97b997-e185-4d5b-9a4c-a1c91e538403",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "192.168.1.2",
+      "createdAt": "2026-06-15T03:40:47.273Z"
+    },
+    {
+      "id": "ea97dd66-ed30-4623-9c22-609ed58adfc0",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "192.168.1.2",
+      "createdAt": "2026-06-15T03:43:53.789Z"
+    },
+    {
+      "id": "b00705c1-f396-4457-95cf-6ce26ae5dbc7",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "127.0.0.1",
+      "createdAt": "2026-06-15T03:45:13.715Z"
+    },
+    {
+      "id": "86e74708-81bf-4043-b778-a2030b3b3a5a",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "127.0.0.1",
+      "createdAt": "2026-06-15T03:49:35.423Z"
+    },
+    {
+      "id": "d90f2254-2107-4e31-8df6-3e436e76fc4d",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "127.0.0.1",
+      "createdAt": "2026-06-15T03:53:20.300Z"
     }
   ]
 }

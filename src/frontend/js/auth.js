@@ -33,7 +33,7 @@ const AUTH = {
     if (!user) return '#/login';
     const routes = {
       admin: '#/admin/dashboard',
-      kiosquero: '#/kiosquero/dashboard',
+      kiosquero: '#/kiosquero/escanear',
       padre: '#/padre/dashboard',
       alumno: '#/alumno/dashboard'
     };

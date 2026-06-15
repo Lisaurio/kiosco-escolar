@@ -204,9 +204,9 @@ const APP = {
         ]}
       ],
       kiosquero: [
-        { section: 'Ventas', links: [
-          { href: '#/kiosquero/dashboard', icon: '📊', label: 'Dashboard' },
-          { href: '#/kiosquero/escanear', icon: '📷', label: 'Escanear QR' },
+        { section: 'VENTAS', links: [
+          { href: '#/kiosquero/escanear', icon: '🛒', label: 'Nueva Venta', cls: 'nav-venta' },
+          { href: '#/kiosquero/dashboard', icon: '📊', label: 'Resumen' },
           { href: '#/kiosquero/buscar', icon: '🔍', label: 'Buscar Alumno' },
           { href: '#/kiosquero/ventas', icon: '📋', label: 'Ventas del Día' }
         ]}
@@ -239,12 +239,11 @@ const APP = {
     nav.innerHTML = items.map(section => `
       <div class="sidebar-section">
         <div class="sidebar-section-title">${section.section}</div>
-        ${section.links.map(link => `
-          <a href="${link.href}" class="${currentHash === link.href ? 'active' : ''}">
-            <span class="nav-icon">${link.icon}</span>
-            ${link.label}
-          </a>
-        `).join('')}
+        ${section.links.map(link => {
+          let cls = currentHash === link.href ? 'active' : '';
+          if (link.cls) cls += (cls ? ' ' : '') + link.cls;
+          return `<a href="${link.href}" class="${cls}"><span class="nav-icon">${link.icon}</span>${link.label}</a>`;
+        }).join('')}
       </div>
     `).join('');
 

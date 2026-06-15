@@ -37,6 +37,13 @@
 
 html { font-size: 16px; scroll-behavior: smooth; }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+}
+
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -52,7 +59,7 @@ a:hover { text-decoration: underline; }
 img { max-width: 100%; height: auto; }
 
 /* Layout */
-.app-layout { display: flex; min-height: 100vh; }
+.app-layout { display: flex; min-height: 100vh; width: 100%; max-width: 100vw; overflow-x: hidden; }
 
 .sidebar {
   width: 260px;
@@ -96,6 +103,9 @@ img { max-width: 100%; height: auto; }
 
 .sidebar-nav a:hover { background: rgba(255,255,255,0.1); color: white; text-decoration: none; }
 .sidebar-nav a.active { background: var(--primary); color: white; }
+.sidebar-nav a.nav-venta { border-left: 4px solid var(--success); font-weight: 700; }
+.sidebar-nav a.nav-venta:not(.active) { background: rgba(16,185,129,0.1); }
+.sidebar-nav a.nav-venta:not(.active):hover { background: rgba(16,185,129,0.22); }
 
 .sidebar-nav .nav-icon { width: 20px; text-align: center; font-size: 1.1rem; }
 
@@ -114,6 +124,10 @@ img { max-width: 100%; height: auto; }
   margin-left: 260px;
   padding: 1.5rem 2rem;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .topbar {
@@ -273,6 +287,12 @@ img { max-width: 100%; height: auto; }
 
 .card-title { font-size: 1.1rem; font-weight: 600; }
 .card-subtitle { font-size: 0.85rem; color: var(--text-secondary); }
+
+.alumno-card { padding: 0.65rem 0.8rem !important; cursor: pointer; font-family: var(--font); color: var(--text); user-select: none; -webkit-tap-highlight-color: transparent; border-width: 2px !important; }
+.alumno-card:active { transform: scale(0.96); border-color: var(--primary) !important; }
+.alumno-card .ac-nombre { font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alumno-card .ac-code { font-size: 0.75rem; color: var(--text-secondary); }
+.alumno-card .ac-saldo { font-weight: 700; font-size: 1rem; }
 
 /* Stat Cards */
 .stats-grid {
@@ -527,21 +547,23 @@ tbody tr:hover { background: rgba(79,70,229,0.03); }
 /* Kiosk (big buttons for kiosk workers) */
 .kiosk-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 0.6rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
 }
 
 .kiosk-product-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.85rem 0.5rem;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.6rem 0.3rem;
+  min-height: 70px;
   background: var(--bg-card);
   border: 2px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.1s ease;
   font-family: var(--font);
   color: var(--text);
   position: relative;
@@ -552,8 +574,8 @@ tbody tr:hover { background: rgba(79,70,229,0.03); }
 .kiosk-product-btn:active { transform: scale(0.95); }
 .kiosk-product-btn:hover { border-color: var(--primary); }
 .kiosk-product-btn.selected { border-color: var(--primary); background: rgba(79,70,229,0.1); }
-.kiosk-product-btn .product-name { font-weight: 600; font-size: 0.85rem; line-height: 1.2; text-align: center; }
-.kiosk-product-btn .product-price { font-weight: 700; color: var(--primary); font-size: 1rem; }
+.kiosk-product-btn .product-name { font-weight: 600; font-size: 0.8rem; line-height: 1.15; text-align: center; }
+.kiosk-product-btn .product-price { font-weight: 700; color: var(--primary); font-size: 0.9rem; }
 .kiosk-product-btn .product-qty {
   position: absolute;
   top: -6px; right: -6px;
@@ -723,6 +745,53 @@ tbody tr:hover { background: rgba(79,70,229,0.03); }
 
 .notif-overlay.open { display: block; }
 
+/* Keypad for manual code entry */
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.keypad-btn {
+  height: 64px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.08s ease;
+  font-family: var(--font);
+}
+
+.keypad-btn:active { transform: scale(0.92); background: var(--primary); color: white; border-color: var(--primary); }
+.keypad-btn.keypad-clear { font-size: 1.2rem; background: var(--danger); color: white; border-color: var(--danger); }
+.keypad-btn.keypad-enter { background: var(--success); color: white; border-color: var(--success); font-size: 1.1rem; }
+
+/* Recent student list */
+.recent-student {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  margin-bottom: 0.4rem;
+}
+
+.recent-student:active { transform: scale(0.97); border-color: var(--primary); }
+.recent-student .rs-name { font-weight: 600; font-size: 0.95rem; }
+.recent-student .rs-code { font-size: 0.75rem; color: var(--text-secondary); }
+.recent-student .rs-saldo { font-weight: 700; color: var(--success); font-size: 1rem; }
+
 /* Empty state */
 .empty-state {
   text-align: center;
@@ -746,7 +815,7 @@ tbody tr:hover { background: rgba(79,70,229,0.03); }
   }
   .sidebar.open { transform: translateX(0); }
 
-  .main-content { margin-left: 0; padding: 1rem; }
+  .main-content { margin-left: 0; padding: 0.75rem; }
 
   .menu-toggle { display: block; }
 
@@ -763,14 +832,16 @@ tbody tr:hover { background: rgba(79,70,229,0.03); }
   .notif-panel { width: 100%; right: -100%; }
 
   .login-card { padding: 1.5rem; }
-
-  .kiosk-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr; }
   .kiosk-grid { grid-template-columns: repeat(2, 1fr); }
   .modal { padding: 1.25rem; }
+}
+
+@media (min-width: 769px) {
+  .kiosk-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 /* Sidebar overlay for mobile */

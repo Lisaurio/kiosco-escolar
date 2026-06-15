@@ -527,35 +527,47 @@ tbody tr:hover { background: rgba(79,70,229,0.03); }
 /* Kiosk (big buttons for kiosk workers) */
 .kiosk-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.6rem;
 }
 
 .kiosk-product-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
+  gap: 0.3rem;
+  padding: 0.85rem 0.5rem;
   background: var(--bg-card);
   border: 2px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.15s ease;
   font-family: var(--font);
   color: var(--text);
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.kiosk-product-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
-.kiosk-product-btn.selected { border-color: var(--primary); background: rgba(79,70,229,0.08); }
-.kiosk-product-btn .product-name { font-weight: 600; font-size: 0.9rem; }
-.kiosk-product-btn .product-price { font-weight: 700; color: var(--primary); font-size: 1.05rem; }
+.kiosk-product-btn:active { transform: scale(0.95); }
+.kiosk-product-btn:hover { border-color: var(--primary); }
+.kiosk-product-btn.selected { border-color: var(--primary); background: rgba(79,70,229,0.1); }
+.kiosk-product-btn .product-name { font-weight: 600; font-size: 0.85rem; line-height: 1.2; text-align: center; }
+.kiosk-product-btn .product-price { font-weight: 700; color: var(--primary); font-size: 1rem; }
 .kiosk-product-btn .product-qty {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  background: var(--bg);
-  padding: 0.15rem 0.5rem;
+  position: absolute;
+  top: -6px; right: -6px;
+  min-width: 24px; height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  background: var(--primary);
+  padding: 0 0.4rem;
   border-radius: 9999px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 /* Scanner */

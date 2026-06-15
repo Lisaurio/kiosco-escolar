@@ -48,14 +48,14 @@
       "escuelaId": "7c740be2-3ed7-45fe-9ef1-6f32298234a3",
       "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
       "activo": true,
-      "saldo": 7000,
+      "saldo": 4200,
       "limiteDiario": 5000,
       "productosBloqueados": [],
       "congelado": false,
       "codigoQR": "956acd2f-50f3-4f80-9119-2a29b3dfd418",
       "codigoNumerico": "123456",
       "createdAt": "2026-06-15T01:27:49.486Z",
-      "updatedAt": "2026-06-15T01:27:49.486Z"
+      "updatedAt": "2026-06-15T03:01:57.782Z"
     },
     {
       "id": "644f4b73-81ad-4db0-9740-d3844f00da58",
@@ -288,6 +288,27 @@
       ],
       "total": 1000,
       "createdAt": "2026-06-14T23:27:49.486Z"
+    },
+    {
+      "id": "7a6a009a-6977-4d4e-96ab-9040159a34ef",
+      "alumnoId": "797f3dfd-de06-4af6-bd68-a50895613489",
+      "kiosqueroId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "items": [
+        {
+          "productoId": "2ee49ef2-f040-4d2f-8c2a-3927b333d464",
+          "nombre": "Alfajor Tofi",
+          "precio": 1200,
+          "cantidad": 1
+        },
+        {
+          "productoId": "a7e180cc-4e04-48f4-b0cc-1a4e88f42974",
+          "nombre": "Jugo Naranja",
+          "precio": 800,
+          "cantidad": 2
+        }
+      ],
+      "total": 2800,
+      "createdAt": "2026-06-15T03:01:57.782Z"
     }
   ],
   "notificaciones": [
@@ -306,6 +327,14 @@
       "mensaje": "- Papas Fritas Chicas $1.000\n- Agua 500ml $600\n\nTotal: $1.600\nSaldo restante: $4.900",
       "leida": true,
       "createdAt": "2026-06-14T23:27:49.486Z"
+    },
+    {
+      "id": "5d375248-7948-40b4-bead-5ff95db5d5fe",
+      "userId": "e8beb8bd-ecdb-4d82-bf9a-5a9018d90d2c",
+      "titulo": "Juan García compró:",
+      "mensaje": "- Alfajor Tofi $1.200\n- Jugo Naranja $1.600\n\nTotal: $2.800\nSaldo restante: $4.200",
+      "leida": false,
+      "createdAt": "2026-06-15T03:01:57.928Z"
     }
   ],
   "auditoria": [
@@ -324,6 +353,46 @@
       "detalle": "Inicio de sesión: admin@kiosco.com",
       "ip": "::1",
       "createdAt": "2026-06-15T01:30:24.709Z"
+    },
+    {
+      "id": "c4e535d0-1f54-4741-a81c-6c5a339f880f",
+      "usuarioId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "accion": "login",
+      "detalle": "Inicio de sesión: kiosco@kiosco.com",
+      "ip": "::1",
+      "createdAt": "2026-06-15T02:56:17.412Z"
+    },
+    {
+      "id": "5b4f978a-18bf-4451-9835-66dfa741ee30",
+      "usuarioId": "644f4b73-81ad-4db0-9740-d3844f00da58",
+      "accion": "login",
+      "detalle": "Inicio de sesión: ana@kiosco.com",
+      "ip": "::1",
+      "createdAt": "2026-06-15T02:58:04.087Z"
+    },
+    {
+      "id": "26c50584-2a0b-408d-9ab9-d43635f4d61c",
+      "usuarioId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "accion": "login",
+      "detalle": "Inicio de sesión: kiosco@kiosco.com",
+      "ip": "::1",
+      "createdAt": "2026-06-15T03:01:57.545Z"
+    },
+    {
+      "id": "c1a1c6a7-c3f8-49b9-953b-c2a6469ae12e",
+      "usuarioId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "accion": "compra",
+      "detalle": "Compra de $2.800 - Alumno: Juan García",
+      "ip": "::1",
+      "createdAt": "2026-06-15T03:01:57.928Z"
+    },
+    {
+      "id": "4c8e24a5-ac7e-4ff9-aa17-edeae035fd35",
+      "usuarioId": "e8beb8bd-ecdb-4d82-bf9a-5a9018d90d2c",
+      "accion": "login",
+      "detalle": "Inicio de sesión: padre@kiosco.com",
+      "ip": "::1",
+      "createdAt": "2026-06-15T03:01:58.225Z"
     }
   ]
 }

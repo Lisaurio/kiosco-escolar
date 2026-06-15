@@ -1,0 +1,329 @@
+{
+  "usuarios": [
+    {
+      "id": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "email": "admin@kiosco.com",
+      "password": "$2a$10$5wyT.oVxtYJtUmByqdlfZ.Wj2QNDlDY8W.Wu9up9N3ju12TtI/0nW",
+      "nombre": "Administrador",
+      "rol": "admin",
+      "telefono": "",
+      "activo": true,
+      "createdAt": "2026-06-15T01:27:49.486Z",
+      "updatedAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "email": "kiosco@kiosco.com",
+      "password": "$2a$10$iCUbbyXyAvL7ALkLI1KIWOowTgSXYunpRrzcwaB5nOittcR5W5nPK",
+      "nombre": "Carlos Kiosquero",
+      "rol": "kiosquero",
+      "telefono": "1145678901",
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "activo": true,
+      "createdAt": "2026-06-15T01:27:49.486Z",
+      "updatedAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "e8beb8bd-ecdb-4d82-bf9a-5a9018d90d2c",
+      "email": "padre@kiosco.com",
+      "password": "$2a$10$VZs69d5Ocg2xFAqoAh2wuuWwVWT7aJzAFo0D0iEfw718Iu5oIRdUi",
+      "nombre": "María García",
+      "rol": "padre",
+      "telefono": "1122334455",
+      "hijos": [
+        "797f3dfd-de06-4af6-bd68-a50895613489",
+        "644f4b73-81ad-4db0-9740-d3844f00da58"
+      ],
+      "activo": true,
+      "createdAt": "2026-06-15T01:27:49.486Z",
+      "updatedAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "797f3dfd-de06-4af6-bd68-a50895613489",
+      "email": "juan@kiosco.com",
+      "password": "$2a$10$ItDJ6mOuTxbEcUoU6mkyH.n.Vyk0jfcIl5ChHALfa4GDhJitnUSUO",
+      "nombre": "Juan García",
+      "rol": "alumno",
+      "telefono": "",
+      "escuelaId": "7c740be2-3ed7-45fe-9ef1-6f32298234a3",
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "activo": true,
+      "saldo": 7000,
+      "limiteDiario": 5000,
+      "productosBloqueados": [],
+      "congelado": false,
+      "codigoQR": "956acd2f-50f3-4f80-9119-2a29b3dfd418",
+      "codigoNumerico": "123456",
+      "createdAt": "2026-06-15T01:27:49.486Z",
+      "updatedAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "644f4b73-81ad-4db0-9740-d3844f00da58",
+      "email": "ana@kiosco.com",
+      "password": "$2a$10$SJzg3TAUL3zRj1OIuh99fuNx4yYEaclqepZ0zFdvptkxLF7QpQQi.",
+      "nombre": "Ana García",
+      "rol": "alumno",
+      "telefono": "",
+      "escuelaId": "7c740be2-3ed7-45fe-9ef1-6f32298234a3",
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "activo": true,
+      "saldo": 4900,
+      "limiteDiario": 3000,
+      "productosBloqueados": [],
+      "congelado": false,
+      "codigoQR": "f2a13b95-185f-4546-b37c-aa1138e8e221",
+      "codigoNumerico": "789012",
+      "createdAt": "2026-06-15T01:27:49.486Z",
+      "updatedAt": "2026-06-15T01:27:49.486Z"
+    }
+  ],
+  "escuelas": [
+    {
+      "id": "7c740be2-3ed7-45fe-9ef1-6f32298234a3",
+      "nombre": "Escuela Primaria N° 1",
+      "direccion": "Av. Siempre Viva 123",
+      "activo": true,
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "b1f7b7ba-761f-434c-a3cc-f285d3859bed",
+      "nombre": "Colegio Secundario San Martín",
+      "direccion": "Belgrano 456",
+      "activo": true,
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    }
+  ],
+  "kioscos": [
+    {
+      "id": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "nombre": "Kiosco del Recreo",
+      "escuelaId": "7c740be2-3ed7-45fe-9ef1-6f32298234a3",
+      "activo": true,
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "850cb88f-9f4d-49b8-b984-65e06d78b235",
+      "nombre": "Kiosco Saludable",
+      "escuelaId": "b1f7b7ba-761f-434c-a3cc-f285d3859bed",
+      "activo": true,
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    }
+  ],
+  "productos": [
+    {
+      "id": "2ee49ef2-f040-4d2f-8c2a-3927b333d464",
+      "nombre": "Alfajor Tofi",
+      "categoria": "Golosinas",
+      "precio": 1200,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "0bd2dcd0-9f23-45c0-a344-a7ed3a4102fc",
+      "nombre": "Alfajor Águila",
+      "categoria": "Golosinas",
+      "precio": 1500,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "a7e180cc-4e04-48f4-b0cc-1a4e88f42974",
+      "nombre": "Jugo Naranja",
+      "categoria": "Bebidas",
+      "precio": 800,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "474fd230-33f6-4199-87d8-3a04e0061b5a",
+      "nombre": "Jugo Manzana",
+      "categoria": "Bebidas",
+      "precio": 800,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "fc2eb80f-d663-4900-9cf1-75cd7d2f386f",
+      "nombre": "Papas Fritas Chicas",
+      "categoria": "Snacks",
+      "precio": 1000,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "4ef86c6d-e12f-4e74-9d78-ed4d841c42d3",
+      "nombre": "Papas Fritas Grandes",
+      "categoria": "Snacks",
+      "precio": 1800,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "ef73348b-b973-47a1-a9b9-5070321f7915",
+      "nombre": "Chupetín",
+      "categoria": "Golosinas",
+      "precio": 500,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "bf8caaa7-2741-41eb-a74c-7d1351f0bf58",
+      "nombre": "Chicle",
+      "categoria": "Golosinas",
+      "precio": 300,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "2bd444e1-5193-4c9b-b899-8d558146ea10",
+      "nombre": "Barrita de Cereal",
+      "categoria": "Saludable",
+      "precio": 700,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "6616f927-9742-4fc9-a7db-2d088708a6eb",
+      "nombre": "Agua 500ml",
+      "categoria": "Bebidas",
+      "precio": 600,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "19affd9d-2139-4800-aeed-58fdb2ee8401",
+      "nombre": "Galletitas Oreo",
+      "categoria": "Snacks",
+      "precio": 900,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    },
+    {
+      "id": "692264aa-db7f-4a6b-ae4e-d6b4d2295a3e",
+      "nombre": "Caramelo Masticable",
+      "categoria": "Golosinas",
+      "precio": 200,
+      "foto": "",
+      "activo": true,
+      "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
+      "createdAt": "2026-06-15T01:27:49.486Z"
+    }
+  ],
+  "compras": [
+    {
+      "id": "4476ef2b-78c2-4d15-9772-dd08aa43ce3f",
+      "alumnoId": "797f3dfd-de06-4af6-bd68-a50895613489",
+      "kiosqueroId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "items": [
+        {
+          "productoId": "2ee49ef2-f040-4d2f-8c2a-3927b333d464",
+          "nombre": "Alfajor Tofi",
+          "precio": 1200,
+          "cantidad": 1
+        },
+        {
+          "productoId": "a7e180cc-4e04-48f4-b0cc-1a4e88f42974",
+          "nombre": "Jugo Naranja",
+          "precio": 800,
+          "cantidad": 1
+        }
+      ],
+      "total": 2000,
+      "createdAt": "2026-06-15T00:27:49.486Z"
+    },
+    {
+      "id": "4061d73b-1406-4935-8a8f-4f1ecaddc667",
+      "alumnoId": "644f4b73-81ad-4db0-9740-d3844f00da58",
+      "kiosqueroId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "items": [
+        {
+          "productoId": "fc2eb80f-d663-4900-9cf1-75cd7d2f386f",
+          "nombre": "Papas Fritas Chicas",
+          "precio": 1000,
+          "cantidad": 1
+        },
+        {
+          "productoId": "6616f927-9742-4fc9-a7db-2d088708a6eb",
+          "nombre": "Agua 500ml",
+          "precio": 600,
+          "cantidad": 1
+        }
+      ],
+      "total": 1600,
+      "createdAt": "2026-06-14T23:27:49.486Z"
+    },
+    {
+      "id": "01474fce-f118-4800-bbcc-986f4b8eff83",
+      "alumnoId": "797f3dfd-de06-4af6-bd68-a50895613489",
+      "kiosqueroId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "items": [
+        {
+          "productoId": "ef73348b-b973-47a1-a9b9-5070321f7915",
+          "nombre": "Chupetín",
+          "precio": 500,
+          "cantidad": 2
+        }
+      ],
+      "total": 1000,
+      "createdAt": "2026-06-14T23:27:49.486Z"
+    }
+  ],
+  "notificaciones": [
+    {
+      "id": "9a5cfbba-f27c-4494-82da-d7a95eb140a7",
+      "userId": "e8beb8bd-ecdb-4d82-bf9a-5a9018d90d2c",
+      "titulo": "Juan compró:",
+      "mensaje": "- Alfajor Tofi $1.200\n- Jugo Naranja $800\n\nTotal: $2.000\nSaldo restante: $7.000",
+      "leida": false,
+      "createdAt": "2026-06-15T00:27:49.486Z"
+    },
+    {
+      "id": "2db01c00-21ef-4992-9938-1d6e1056bcc6",
+      "userId": "e8beb8bd-ecdb-4d82-bf9a-5a9018d90d2c",
+      "titulo": "Ana compró:",
+      "mensaje": "- Papas Fritas Chicas $1.000\n- Agua 500ml $600\n\nTotal: $1.600\nSaldo restante: $4.900",
+      "leida": true,
+      "createdAt": "2026-06-14T23:27:49.486Z"
+    }
+  ],
+  "auditoria": [
+    {
+      "id": "7447228e-9086-4793-bbab-440b40d406a8",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "::1",
+      "createdAt": "2026-06-15T01:28:10.663Z"
+    },
+    {
+      "id": "b21578bc-5835-4b9f-ae8c-84a491fcf7b0",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "::1",
+      "createdAt": "2026-06-15T01:30:24.709Z"
+    }
+  ]
+}

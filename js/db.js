@@ -2,6 +2,8 @@ const DB = {
   _data: null,
   _lsKey: 'kiosco_db',
 
+  init() { this._load(); return Promise.resolve(); },
+
   _load() {
     if (this._data) return;
     try {

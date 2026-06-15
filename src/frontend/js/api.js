@@ -1,89 +1,210 @@
 const API = {
-  baseUrl: '/api',
-
-  async request(endpoint, options = {}) {
-    const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers
-      },
-      ...options
-    };
-
-    if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData)) {
-      config.body = JSON.stringify(config.body);
-    }
-
-    const res = await fetch(`${this.baseUrl}${endpoint}`, config);
-    const data = await res.json();
-
-    if (!res.ok) {
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.hash = '#/login';
-      }
-      throw new Error(data.error || 'Error del servidor');
-    }
-
-    return data;
+  _user() { return JSON.parse(sessionStorage.getItem('kiosco_user') || 'null'); },
+  _filterByKiosco(items) {
+    const user = this._user();
+    if (!user || user.rol === 'admin') return items;
+    return items.filter(i => i.kioscoId === user.kioscoId || i.kioscoId === user.kioscoId);
   },
 
-  get(endpoint) { return this.request(endpoint); },
-  post(endpoint, body) { return this.request(endpoint, { method: 'POST', body }); },
-  put(endpoint, body) { return this.request(endpoint, { method: 'PUT', body }); },
-  delete(endpoint) { return this.request(endpoint, { method: 'DELETE' }); },
+  login(email, password) {
+    const user = DB.query('usuarios', u => u.email === email && u.password === password && u.activo !== false)[0];
+    if (!user) return Promise.reject(new Error('Credenciales inválidas'));
+    const { password: _, ...safe } = user;
+    sessionStorage.setItem('kiosco_user', JSON.stringify(user));
+    return Promise.resolve({ token: 'demo-token', usuario: safe });
+  },
 
-  // Auth
-  login(email, password) { return this.post('/auth/login', { email, password }); },
-  register(data) { return this.post('/auth/register', data); },
-  me() { return this.get('/auth/me'); },
+  register(data) {
+    const exists = DB.query('usuarios', u => u.email === data.email)[0];
+    if (exists) return Promise.reject(new Error('Email ya registrado'));
+    const user = DB.insert('usuarios', { ...data, activo: true });
+    const { password: _, ...safe } = user;
+    sessionStorage.setItem('kiosco_user', JSON.stringify(user));
+    return Promise.resolve({ token: 'demo-token', usuario: safe });
+  },
 
-  // Usuarios
-  getUsuarios(params = '') { return this.get(`/usuarios${params}`); },
-  getUsuario(id) { return this.get(`/usuarios/${id}`); },
-  crearUsuario(data) { return this.post('/usuarios', data); },
-  actualizarUsuario(id, data) { return this.put(`/usuarios/${id}`, data); },
-  eliminarUsuario(id) { return this.delete(`/usuarios/${id}`); },
-  cargarSaldo(alumnoId, monto) { return this.post('/usuarios/cargar-saldo', { alumnoId, monto }); },
+  me() {
+    const user = this._user();
+    if (!user) return Promise.reject(new Error('No autenticado'));
+    const { password: _, ...safe } = user;
+    return Promise.resolve(safe);
+  },
 
-  // Productos
-  getProductos(params = '') { return this.get(`/productos${params}`); },
-  getProducto(id) { return this.get(`/productos/${id}`); },
-  crearProducto(data) { return this.post('/productos', data); },
-  actualizarProducto(id, data) { return this.put(`/productos/${id}`, data); },
-  eliminarProducto(id) { return this.delete(`/productos/${id}`); },
-  getCategorias() { return this.get('/productos/categorias'); },
+  getUsuarios(params = '') {
+    let list = DB.getAll('usuarios').map(u => { const { password, ...rest } = u; return rest; });
+    const url = new URL('http://x' + params);
+    if (url.searchParams.get('rol')) list = list.filter(u => u.rol === url.searchParams.get('rol'));
+    return Promise.resolve(list);
+  },
 
-  // Compras
-  registrarCompra(data) { return this.post('/compras', data); },
-  getHistorial(params = '') { return this.get(`/compras${params}`); },
-  getVentasDia() { return this.get('/compras/ventas-dia'); },
-  getRanking() { return this.get('/compras/ranking'); },
+  getUsuario(id) {
+    const u = DB.getById('usuarios', id);
+    if (!u) return Promise.reject(new Error('Usuario no encontrado'));
+    const { password, ...safe } = u;
+    return Promise.resolve(safe);
+  },
 
-  // Escuelas
-  getEscuelas() { return this.get('/escuelas'); },
-  getEscuela(id) { return this.get(`/escuelas/${id}`); },
-  crearEscuela(data) { return this.post('/escuelas', data); },
-  actualizarEscuela(id, data) { return this.put(`/escuelas/${id}`, data); },
-  eliminarEscuela(id) { return this.delete(`/escuelas/${id}`); },
+  crearUsuario(data) {
+    const user = DB.insert('usuarios', data);
+    const { password, ...safe } = user;
+    return Promise.resolve(safe);
+  },
 
-  // Kioscos
-  getKioscos(params = '') { return this.get(`/kioscos${params}`); },
-  getKiosco(id) { return this.get(`/kioscos/${id}`); },
-  crearKiosco(data) { return this.post('/kioscos', data); },
-  actualizarKiosco(id, data) { return this.put(`/kioscos/${id}`, data); },
-  eliminarKiosco(id) { return this.delete(`/kioscos/${id}`); },
+  actualizarUsuario(id, data) {
+    const user = DB.update('usuarios', id, data);
+    if (!user) return Promise.reject(new Error('Usuario no encontrado'));
+    const { password, ...safe } = user;
+    return Promise.resolve(safe);
+  },
 
-  // Notificaciones
-  getNotificaciones() { return this.get('/notificaciones'); },
-  getNoLeidas() { return this.get('/notificaciones/no-leidas'); },
-  marcarLeida(id) { return this.put(`/notificaciones/${id}/leida`); },
-  suscribirPush(sub) { return this.post('/notificaciones/suscribir', sub); },
+  eliminarUsuario(id) { DB.delete('usuarios', id); return Promise.resolve({ success: true }); },
 
-  // Reportes
-  getDashboard() { return this.get('/reportes/dashboard'); },
-  getEstadisticas(params = '') { return this.get(`/reportes/estadisticas${params}`); }
+  cargarSaldo(alumnoId, monto) {
+    const alumno = DB.getById('usuarios', alumnoId);
+    if (!alumno) return Promise.reject(new Error('Alumno no encontrado'));
+    const nuevo = (alumno.saldo || 0) + monto;
+    DB.update('usuarios', alumnoId, { saldo: nuevo });
+    DB.insert('notificaciones', { usuarioId: alumnoId, titulo: 'Saldo cargado', cuerpo: `Se cargó $${monto.toLocaleString()} a tu cuenta`, leida: false, fecha: new Date().toISOString() });
+    return Promise.resolve({ saldo: nuevo });
+  },
+
+  getProductos(params = '') {
+    let list = DB.getAll('productos').filter(p => p.activo !== false);
+    const url = new URL('http://x' + params);
+    if (url.searchParams.get('kioscoId')) list = list.filter(p => p.kioscoId === url.searchParams.get('kioscoId'));
+    if (url.searchParams.get('activo')) list = list.filter(p => p.activo !== false);
+    return Promise.resolve(list);
+  },
+
+  getProducto(id) {
+    const p = DB.getById('productos', id);
+    if (!p) return Promise.reject(new Error('Producto no encontrado'));
+    return Promise.resolve(p);
+  },
+
+  crearProducto(data) { return Promise.resolve(DB.insert('productos', data)); },
+  actualizarProducto(id, data) {
+    const p = DB.update('productos', id, data);
+    if (!p) return Promise.reject(new Error('Producto no encontrado'));
+    return Promise.resolve(p);
+  },
+  eliminarProducto(id) { DB.delete('productos', id); return Promise.resolve({ success: true }); },
+  getCategorias() {
+    const cats = [...new Set(DB.getAll('productos').map(p => p.categoria).filter(Boolean))];
+    return Promise.resolve(cats);
+  },
+
+  registrarCompra(data) {
+    const user = this._user();
+    const alumno = DB.getById('usuarios', data.alumnoId);
+    if (!alumno) return Promise.reject(new Error('Alumno no encontrado'));
+    const total = data.productos.reduce((s, p) => s + p.precio * p.cantidad, 0);
+    if ((alumno.saldo || 0) < total) return Promise.reject(new Error('Saldo insuficiente'));
+    DB.update('usuarios', data.alumnoId, { saldo: (alumno.saldo || 0) - total });
+    const compra = DB.insert('compras', {
+      alumnoId: data.alumnoId,
+      kioscoId: alumno.kioscoId,
+      productos: data.productos,
+      total,
+      fecha: new Date().toISOString(),
+      creadoPor: user?.id || 'unknown',
+    });
+    if (alumno.padreId) {
+      DB.insert('notificaciones', {
+        usuarioId: alumno.padreId,
+        titulo: 'Compra realizada',
+        cuerpo: `${alumno.nombre} compró ${data.productos.map(p => `${p.nombre} x${p.cantidad}`).join(', ')} por $${total.toLocaleString()}`,
+        leida: false,
+        fecha: new Date().toISOString(),
+      });
+    }
+    return Promise.resolve(compra);
+  },
+
+  getHistorial(params = '') {
+    let list = DB.getAll('compras');
+    const url = new URL('http://x' + params);
+    if (url.searchParams.get('alumnoId')) list = list.filter(c => c.alumnoId === url.searchParams.get('alumnoId'));
+    list.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    return Promise.resolve(list);
+  },
+
+  getVentasDia() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const ventas = DB.getAll('compras').filter(c => c.fecha.slice(0, 10) === hoy);
+    return Promise.resolve(ventas);
+  },
+
+  getRanking() {
+    const ventas = DB.getAll('compras');
+    const counts = {};
+    ventas.forEach(c => {
+      c.productos.forEach(p => {
+        counts[p.productoId] = (counts[p.productoId] || 0) + p.cantidad;
+      });
+    });
+    const prods = DB.getAll('productos');
+    const ranking = Object.entries(counts)
+      .map(([id, cant]) => ({ productoId: id, nombre: (prods.find(p => p.id === id) || {}).nombre || '?', cantidad: cant }))
+      .sort((a, b) => b.cantidad - a.cantidad);
+    return Promise.resolve(ranking);
+  },
+
+  getEscuelas() { return Promise.resolve(DB.getAll('escuelas')); },
+  getEscuela(id) { return Promise.resolve(DB.getById('escuelas', id)); },
+  crearEscuela(data) { return Promise.resolve(DB.insert('escuelas', data)); },
+  actualizarEscuela(id, data) { return Promise.resolve(DB.update('escuelas', id, data)); },
+  eliminarEscuela(id) { DB.delete('escuelas', id); return Promise.resolve({ success: true }); },
+
+  getKioscos(params = '') {
+    let list = DB.getAll('kioscos');
+    return Promise.resolve(list);
+  },
+  getKiosco(id) { return Promise.resolve(DB.getById('kioscos', id)); },
+  crearKiosco(data) { return Promise.resolve(DB.insert('kioscos', data)); },
+  actualizarKiosco(id, data) { return Promise.resolve(DB.update('kioscos', id, data)); },
+  eliminarKiosco(id) { DB.delete('kioscos', id); return Promise.resolve({ success: true }); },
+
+  getNotificaciones() {
+    const user = this._user();
+    if (!user) return Promise.resolve([]);
+    let list = DB.query('notificaciones', n => n.usuarioId === user.id);
+    list.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    return Promise.resolve(list);
+  },
+  getNoLeidas() { return this.getNotificaciones().then(list => list.filter(n => !n.leida)); },
+  marcarLeida(id) { DB.update('notificaciones', id, { leida: true }); return Promise.resolve({ success: true }); },
+  suscribirPush() { return Promise.resolve({ success: true }); },
+
+  getDashboard() {
+    const user = this._user();
+    const hoy = new Date().toISOString().slice(0, 10);
+    const compras = user.rol === 'admin' ? DB.getAll('compras') : DB.query('compras', c => c.kioscoId === user.kioscoId);
+    const ventasHoy = compras.filter(c => c.fecha.slice(0, 10) === hoy).reduce((s, c) => s + c.total, 0);
+    const comprasCount = compras.filter(c => c.fecha.slice(0, 10) === hoy).length;
+    const ventasMes = compras.filter(c => c.fecha.slice(0, 7) === hoy.slice(0, 7)).reduce((s, c) => s + c.total, 0);
+    const alumnosActivos = DB.query('usuarios', u => u.rol === 'alumno' && u.activo !== false).length;
+
+    const counts = {};
+    compras.forEach(c => c.productos.forEach(p => { counts[p.productoId] = (counts[p.productoId] || 0) + p.cantidad; }));
+    const prods = DB.getAll('productos');
+    const masVendidos = Object.entries(counts)
+      .map(([id, cant]) => ({ productoId: id, nombre: (prods.find(p => p.id === id) || {}).nombre || '?', cantidad: cant }))
+      .sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
+
+    return Promise.resolve({ ventasHoy, comprasCount, ventasMes, alumnosActivos, masVendidos });
+  },
+
+  getEstadisticas() {
+    const compras = DB.getAll('compras');
+    const ventasPorDia = {};
+    compras.forEach(c => {
+      const dia = c.fecha.slice(0, 10);
+      ventasPorDia[dia] = (ventasPorDia[dia] || 0) + c.total;
+    });
+    const ventas = Object.entries(ventasPorDia).map(([fecha, total]) => ({ fecha, total })).sort((a, b) => a.fecha.localeCompare(b.fecha));
+    return Promise.resolve({ ventas });
+  },
 };
+
+window.API = API;

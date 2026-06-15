@@ -69,7 +69,7 @@ const REGISTER = {
 
       try {
         const data = await API.register({ nombre, email, password, telefono, rol });
-        AUTH.login(data.token, data.user);
+        AUTH.login(email, password);
         window.location.hash = AUTH.redirectToDashboard();
       } catch (err) {
         errorEl.textContent = err.message;

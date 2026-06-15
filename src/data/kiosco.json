@@ -48,14 +48,14 @@
       "escuelaId": "7c740be2-3ed7-45fe-9ef1-6f32298234a3",
       "kioscoId": "fed62710-aa0e-4608-a53f-a2bace585fc2",
       "activo": true,
-      "saldo": 4200,
+      "saldo": 3600,
       "limiteDiario": 5000,
       "productosBloqueados": [],
       "congelado": false,
       "codigoQR": "956acd2f-50f3-4f80-9119-2a29b3dfd418",
       "codigoNumerico": "123456",
       "createdAt": "2026-06-15T01:27:49.486Z",
-      "updatedAt": "2026-06-15T03:01:57.782Z"
+      "updatedAt": "2026-06-15T04:10:55.436Z"
     },
     {
       "id": "644f4b73-81ad-4db0-9740-d3844f00da58",
@@ -319,6 +319,21 @@
       ],
       "total": 2800,
       "createdAt": "2026-06-15T03:01:57.782Z"
+    },
+    {
+      "id": "97465ee6-5994-407f-acf8-ff7effa19719",
+      "alumnoId": "797f3dfd-de06-4af6-bd68-a50895613489",
+      "kiosqueroId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "items": [
+        {
+          "productoId": "6616f927-9742-4fc9-a7db-2d088708a6eb",
+          "nombre": "Agua 500ml",
+          "precio": 600,
+          "cantidad": 1
+        }
+      ],
+      "total": 600,
+      "createdAt": "2026-06-15T04:10:55.436Z"
     }
   ],
   "notificaciones": [
@@ -345,6 +360,14 @@
       "mensaje": "- Alfajor Tofi $1.200\n- Jugo Naranja $1.600\n\nTotal: $2.800\nSaldo restante: $4.200",
       "leida": false,
       "createdAt": "2026-06-15T03:01:57.928Z"
+    },
+    {
+      "id": "64f67cdb-191c-4277-99d8-5cb51c1bf532",
+      "userId": "e8beb8bd-ecdb-4d82-bf9a-5a9018d90d2c",
+      "titulo": "Juan García compró:",
+      "mensaje": "- Agua 500ml $600\n\nTotal: $600\nSaldo restante: $3.600",
+      "leida": false,
+      "createdAt": "2026-06-15T04:10:55.481Z"
     }
   ],
   "auditoria": [
@@ -459,6 +482,30 @@
       "detalle": "Inicio de sesión: admin@kiosco.com",
       "ip": "127.0.0.1",
       "createdAt": "2026-06-15T03:53:20.300Z"
+    },
+    {
+      "id": "988e1787-d140-42de-81a9-a047429ebb0b",
+      "usuarioId": "b5d97b12-70ba-42e2-a59e-1a32269bca79",
+      "accion": "login",
+      "detalle": "Inicio de sesión: admin@kiosco.com",
+      "ip": "192.168.1.2",
+      "createdAt": "2026-06-15T04:08:15.609Z"
+    },
+    {
+      "id": "46c9b86d-9ea7-4556-b922-9cfb47135cc4",
+      "usuarioId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "accion": "login",
+      "detalle": "Inicio de sesión: kiosco@kiosco.com",
+      "ip": "192.168.1.2",
+      "createdAt": "2026-06-15T04:10:08.166Z"
+    },
+    {
+      "id": "ef9128e3-05db-46c0-83a9-5c688d128eb5",
+      "usuarioId": "ad036280-e893-4e11-bcbb-f0a32d3f325b",
+      "accion": "compra",
+      "detalle": "Compra de $600 - Alumno: Juan García",
+      "ip": "192.168.1.2",
+      "createdAt": "2026-06-15T04:10:55.481Z"
     }
   ]
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kiosco-v1';
+const CACHE_NAME = 'kiosco-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -31,68 +31,19 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-    ))
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
   );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(networkFirst(event.request));
-  } else {
-    event.respondWith(cacheFirst(event.request));
-  }
-});
-
-async function cacheFirst(request) {
-  const cached = await caches.match(request);
-  return cached || fetch(request);
-}
-
-async function networkFirst(request) {
-  try {
-    const response = await fetch(request);
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone());
-    return response;
-  } catch (err) {
-    const cached = await caches.match(request);
-    return cached || new Response(JSON.stringify({ error: 'offline' }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-}
-
-self.addEventListener('push', event => {
-  let data = { titulo: 'Kiosco Escolar', mensaje: '' };
-  if (event.data) {
-    try { data = event.data.json(); } catch { data.mensaje = event.data.text(); }
-  }
-
-  const options = {
-    body: data.mensaje,
-    icon: '/assets/icons/icon-192.svg',
-    badge: '/assets/icons/icon-192.svg',
-    vibrate: [200, 100, 200],
-    tag: 'kiosco-notification'
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.titulo, options)
+  event.respondWith(
+    caches.match(event.request).then(cached => cached || fetch(event.request))
   );
-});
-
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  event.waitUntil(clients.openWindow('/'));
 });

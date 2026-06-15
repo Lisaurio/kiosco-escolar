@@ -21,8 +21,12 @@ const LOGIN = {
           <p class="text-center mt-2" style="font-size:0.85rem;color:var(--text-secondary)">
             ¿No tenés cuenta? <a href="#/register">Registrate</a>
           </p>
-          <div class="mt-3" style="font-size:0.75rem;color:var(--text-secondary);text-align:center">
-            <p><strong>Demo:</strong> admin@kiosco.com / admin123</p>
+          <div class="mt-3" style="font-size:0.75rem;color:var(--text-secondary);text-align:center;line-height:1.6">
+            <strong>Demo:</strong><br>
+            kiosco@kiosco.com / kiosco123 🛒<br>
+            admin@kiosco.com / admin123<br>
+            padre@kiosco.com / padre123<br>
+            juan@kiosco.com / juan123
           </div>
         </div>
       </div>
@@ -45,7 +49,7 @@ const LOGIN = {
 
       try {
         const data = await API.login(email, password);
-        AUTH.login(data.token, data.user);
+        AUTH.login(email, password);
         window.location.hash = AUTH.redirectToDashboard();
       } catch (err) {
         errorEl.textContent = err.message;

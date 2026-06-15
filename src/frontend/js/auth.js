@@ -1,32 +1,21 @@
 const AUTH = {
-  getUser() {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  },
-
-  getToken() {
-    return localStorage.getItem('token');
-  },
-
-  isLoggedIn() {
-    return !!this.getToken();
-  },
-
-  hasRole(...roles) {
-    const user = this.getUser();
-    return user && roles.includes(user.rol);
-  },
-
-  login(token, user) {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
+  login(email, password) {
+    return API.login(email, password).then(res => {
+      sessionStorage.setItem('kiosco_user', JSON.stringify(res.usuario));
+      return res.usuario;
+    });
   },
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('kiosco_user');
     window.location.hash = '#/login';
   },
+
+  getUser() {
+    try { return JSON.parse(sessionStorage.getItem('kiosco_user')); } catch { return null; }
+  },
+
+  isLoggedIn() { return !!this.getUser(); },
 
   redirectToDashboard() {
     const user = this.getUser();
@@ -40,3 +29,5 @@ const AUTH = {
     return routes[user.rol] || '#/login';
   }
 };
+
+window.AUTH = AUTH;

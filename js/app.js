@@ -1,4 +1,5 @@
 const APP = {
+  BASE: location.pathname.replace(/\/[^/]*$/, '/'),
   currentPage: null,
   pages: {},
 
@@ -155,7 +156,7 @@ const APP = {
       document.getElementById('topbar').style.display = 'none';
       document.getElementById('sidebar').style.display = 'none';
       try {
-        await import('./pages/register.js');
+        await import(this.BASE + 'js/pages/register.js');
         window.REGISTER.render(document.getElementById('pageContent'), document.getElementById('pageTitle'));
       } catch {}
       return;
@@ -274,7 +275,7 @@ const APP = {
     if (pageName === 'login') {
       document.getElementById('topbar').style.display = 'none';
       document.getElementById('sidebar').style.display = 'none';
-      await import('./pages/login.js');
+      await import(this.BASE + 'js/pages/login.js');
       window.LOGIN.render(content, title);
       return;
     }
@@ -328,7 +329,7 @@ const APP = {
     }
 
     try {
-      await import(page.js);
+      await import(this.BASE + page.js);
       const fn = window[page.fn];
       if (fn && fn.render) {
         fn.render(content, title);

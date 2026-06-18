@@ -161,7 +161,7 @@ const ADMIN_PRODUCTOS = {
     if (this._barcodeScanner) return;
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay open';
-    overlay.style.zIndex = '100';
+    overlay.style.zIndex = '2000';
     overlay.innerHTML = `
       <div class="modal" style="max-width:380px;text-align:center">
         <div class="modal-title">Escanear código de barras</div>
@@ -182,7 +182,21 @@ const ADMIN_PRODUCTOS = {
       this._barcodeScanner = new Html5Qrcode('barcodeScannerContainer');
       await this._barcodeScanner.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 220, height: 120 } },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 50 },
+          supportedScanTypes: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.CODE_93,
+            Html5QrcodeSupportedFormats.QR_CODE
+          ],
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+        },
         (decodedText) => this.onBarcodeScanned(decodedText, overlay),
         () => {}
       );

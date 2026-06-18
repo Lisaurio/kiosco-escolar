@@ -368,7 +368,7 @@ const KIOSQUERO_ESCANEAR = {
       <div class="modal" style="max-width:380px;text-align:center">
         <div class="modal-title">Escanear producto</div>
         <p class="text-muted" style="font-size:0.85rem">Apuntá la cámara al código de barras</p>
-        <div id="barcodeScannerContainer" style="width:100%;aspect-ratio:1;margin:0 auto;max-width:280px"></div>
+        <div id="barcodeScannerContainer" style="width:100%;margin:0 auto;max-width:280px;min-height:200px"></div>
         <div id="barcodeStatus" style="font-size:0.85rem;margin-top:0.3rem;color:var(--text-secondary)">Esperando...</div>
         <button class="btn btn-outline btn-block mt-1" id="cancelBarcode">✕ Cancelar</button>
       </div>

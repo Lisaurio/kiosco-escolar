@@ -154,7 +154,7 @@ const APP = {
       document.getElementById('topbar').style.display = 'none';
       document.getElementById('sidebar').style.display = 'none';
       try {
-        await import('./js/pages/register.js');
+        await import('./pages/register.js');
         window.REGISTER.render(document.getElementById('pageContent'), document.getElementById('pageTitle'));
       } catch {}
       return;
@@ -273,7 +273,7 @@ const APP = {
     if (pageName === 'login') {
       document.getElementById('topbar').style.display = 'none';
       document.getElementById('sidebar').style.display = 'none';
-      await import('./js/pages/login.js');
+      await import('./pages/login.js');
       window.LOGIN.render(content, title);
       return;
     }
@@ -300,23 +300,23 @@ const APP = {
     }
 
     const pageMap = {
-      admin_dashboard: { js: './js/pages/admin/dashboard.js', fn: 'ADMIN_DASHBOARD' },
-      admin_escuelas: { js: './js/pages/admin/escuelas.js', fn: 'ADMIN_ESCUELAS' },
-      admin_kioscos: { js: './js/pages/admin/kioscos.js', fn: 'ADMIN_KIOSCOS' },
-      admin_usuarios: { js: './js/pages/admin/usuarios.js', fn: 'ADMIN_USUARIOS' },
-      admin_productos: { js: './js/pages/admin/productos.js', fn: 'ADMIN_PRODUCTOS' },
-      admin_reportes: { js: './js/pages/admin/reportes.js', fn: 'ADMIN_REPORTES' },
-      kiosquero_dashboard: { js: './js/pages/kiosquero/dashboard.js', fn: 'KIOSQUERO_DASHBOARD' },
-      kiosquero_escanear: { js: './js/pages/kiosquero/escanear.js', fn: 'KIOSQUERO_ESCANEAR' },
-      kiosquero_buscar: { js: './js/pages/kiosquero/buscar.js', fn: 'KIOSQUERO_BUSCAR' },
-      kiosquero_ventas: { js: './js/pages/kiosquero/ventas.js', fn: 'KIOSQUERO_VENTAS' },
-      padre_dashboard: { js: './js/pages/padre/dashboard.js', fn: 'PADRE_DASHBOARD' },
-      padre_hijos: { js: './js/pages/padre/hijos.js', fn: 'PADRE_HIJOS' },
-      'padre_cargar-saldo': { js: './js/pages/padre/cargar-saldo.js', fn: 'PADRE_CARGAR' },
-      padre_historial: { js: './js/pages/padre/historial.js', fn: 'PADRE_HISTORIAL' },
-      padre_configuracion: { js: './js/pages/padre/configuracion.js', fn: 'PADRE_CONFIG' },
-      alumno_dashboard: { js: './js/pages/alumno/dashboard.js', fn: 'ALUMNO_DASHBOARD' },
-      alumno_qr: { js: './js/pages/alumno/qr.js', fn: 'ALUMNO_QR' }
+      admin_dashboard: { js: './pages/admin/dashboard.js', fn: 'ADMIN_DASHBOARD' },
+      admin_escuelas: { js: './pages/admin/escuelas.js', fn: 'ADMIN_ESCUELAS' },
+      admin_kioscos: { js: './pages/admin/kioscos.js', fn: 'ADMIN_KIOSCOS' },
+      admin_usuarios: { js: './pages/admin/usuarios.js', fn: 'ADMIN_USUARIOS' },
+      admin_productos: { js: './pages/admin/productos.js', fn: 'ADMIN_PRODUCTOS' },
+      admin_reportes: { js: './pages/admin/reportes.js', fn: 'ADMIN_REPORTES' },
+      kiosquero_dashboard: { js: './pages/kiosquero/dashboard.js', fn: 'KIOSQUERO_DASHBOARD' },
+      kiosquero_escanear: { js: './pages/kiosquero/escanear.js', fn: 'KIOSQUERO_ESCANEAR' },
+      kiosquero_buscar: { js: './pages/kiosquero/buscar.js', fn: 'KIOSQUERO_BUSCAR' },
+      kiosquero_ventas: { js: './pages/kiosquero/ventas.js', fn: 'KIOSQUERO_VENTAS' },
+      padre_dashboard: { js: './pages/padre/dashboard.js', fn: 'PADRE_DASHBOARD' },
+      padre_hijos: { js: './pages/padre/hijos.js', fn: 'PADRE_HIJOS' },
+      'padre_cargar-saldo': { js: './pages/padre/cargar-saldo.js', fn: 'PADRE_CARGAR' },
+      padre_historial: { js: './pages/padre/historial.js', fn: 'PADRE_HISTORIAL' },
+      padre_configuracion: { js: './pages/padre/configuracion.js', fn: 'PADRE_CONFIG' },
+      alumno_dashboard: { js: './pages/alumno/dashboard.js', fn: 'ALUMNO_DASHBOARD' },
+      alumno_qr: { js: './pages/alumno/qr.js', fn: 'ALUMNO_QR' }
     };
 
     const page = pageMap[pageName];

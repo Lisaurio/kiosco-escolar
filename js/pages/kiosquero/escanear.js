@@ -3,6 +3,7 @@ const KIOSQUERO_ESCANEAR = {
   productos: [],
   carrito: [],
   scanner: null,
+  _barcodeScanner: null,
   _productosCache: {},
   _codigo: '',
   _todosAlumnos: [],
@@ -280,6 +281,8 @@ const KIOSQUERO_ESCANEAR = {
       return;
     }
 
+    const bloqueados = alumno.productosBloqueados || [];
+
     content.innerHTML = `
       <div id="ventaHeader" class="card mb-1" style="background:var(--primary);color:white;border:none;padding:0.65rem 1rem">
         <div class="flex items-center justify-between">
@@ -290,8 +293,16 @@ const KIOSQUERO_ESCANEAR = {
           <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:white;border:none" onclick="KIOSQUERO_ESCANEAR.render(document.getElementById('pageContent'), document.getElementById('pageTitle'))">✕</button>
         </div>
       </div>
+      ${bloqueados.length ? `
+      <div id="bloqueadosWarning" class="alert alert-warning" style="font-size:0.8rem;padding:0.5rem 0.65rem;margin-bottom:0.5rem">
+        ⛔ Productos bloqueados para <strong>${alumno.nombre}</strong>:
+        <span style="display:inline-block;margin-top:0.2rem" id="bloqueadosList"></span>
+      </div>` : ''}
 
-      <input class="form-input mb-1" type="text" id="filtroProductos" placeholder="🔍 Buscar producto..." autofocus style="font-size:1rem;padding:0.5rem 0.75rem;border-width:2px">
+      <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem">
+        <input class="form-input" type="text" id="filtroProductos" placeholder="🔍 Buscar producto..." autofocus style="flex:1;font-size:1rem;padding:0.5rem 0.75rem;border-width:2px">
+        <button class="btn btn-outline" id="btnScanBarcode" title="Escanear código de barras" style="font-size:1.2rem;padding:0.5rem 0.7rem;white-space:nowrap">📷</button>
+      </div>
 
       <div id="categoriasTabs" class="tabs" style="margin-bottom:0.5rem;gap:0.25rem;overflow-x:auto;flex-wrap:nowrap">
         <button class="tab active" data-cat="todas">Todas</button>
@@ -342,6 +353,11 @@ const KIOSQUERO_ESCANEAR = {
 
       this.renderProductos('todas');
 
+      const bloqueadosList = document.getElementById('bloqueadosList');
+      if (bloqueadosList) {
+        bloqueadosList.textContent = productos.filter(p => bloqueados.includes(p.id)).map(p => p.nombre).join(', ') || '—';
+      }
+
       document.getElementById('filtroProductos').oninput = () => {
         const activeCat = document.querySelector('#categoriasTabs .tab.active');
         this.renderProductos(activeCat ? activeCat.dataset.cat : 'todas');
@@ -349,8 +365,94 @@ const KIOSQUERO_ESCANEAR = {
       document.getElementById('filtroProductos').focus();
 
       document.getElementById('btnConfirmar').onclick = () => this.confirmarVenta();
+      document.getElementById('btnScanBarcode').onclick = () => this.startBarcodeScanner();
     } catch (e) {
       document.getElementById('productosList').innerHTML = `<div class="alert alert-danger">Error: ${e.message}</div>`;
+    }
+  },
+
+  async startBarcodeScanner() {
+    if (this._barcodeScanner) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay open';
+    overlay.style.zIndex = '100';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:380px;text-align:center">
+        <div class="modal-title">Escanear producto</div>
+        <p class="text-muted" style="font-size:0.85rem">Apuntá la cámara al código de barras</p>
+        <div id="barcodeScannerContainer" style="width:100%;margin:0 auto;max-width:280px;min-height:200px"></div>
+        <div id="barcodeStatus" style="font-size:0.85rem;margin-top:0.3rem;color:var(--text-secondary)">Esperando...</div>
+        <button class="btn btn-outline btn-block mt-1" id="cancelBarcode">✕ Cancelar</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#cancelBarcode').onclick = () => {
+      this.stopBarcodeScanner();
+      overlay.remove();
+    };
+
+    try {
+      this._barcodeScanner = new Html5Qrcode('barcodeScannerContainer');
+      await this._barcodeScanner.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 50 },
+          supportedScanTypes: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.CODE_93,
+            Html5QrcodeSupportedFormats.QR_CODE
+          ],
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+        },
+        (decodedText) => this.onBarcodeScanned(decodedText, overlay),
+        () => {}
+      );
+    } catch {
+      document.getElementById('barcodeScannerContainer').innerHTML =
+        '<div class="alert alert-warning" style="font-size:0.85rem">📷 Cámara no disponible</div>';
+    }
+  },
+
+  stopBarcodeScanner() {
+    if (this._barcodeScanner) {
+      try { this._barcodeScanner.stop(); } catch {}
+      this._barcodeScanner = null;
+    }
+  },
+
+  async onBarcodeScanned(codigo, overlay) {
+    this.stopBarcodeScanner();
+    overlay.remove();
+    const statusEl = document.getElementById('barcodeStatus');
+    try {
+      const producto = await API.getProductoPorBarcode(codigo);
+      if (producto) {
+        const bloqueados = this.alumnoActual?.productosBloqueados || [];
+        if (bloqueados.includes(producto.id)) {
+          alert('⛔ ' + producto.nombre + ' — Producto bloqueado para este alumno');
+          return;
+        }
+        const existe = this.carrito.find(c => c.productoId === producto.id);
+        if (existe) {
+          existe.cantidad++;
+        } else {
+          this.carrito.push({ productoId: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1 });
+        }
+        this.actualizarCartBar();
+        const activeCat = document.querySelector('#categoriasTabs .tab.active');
+        this.renderProductos(activeCat ? activeCat.dataset.cat : 'todas');
+      } else {
+        alert('Producto no encontrado\nCódigo: ' + codigo);
+      }
+    } catch (e) {
+      alert('Error: ' + e.message);
     }
   },
 
@@ -371,7 +473,7 @@ const KIOSQUERO_ESCANEAR = {
       return `
         <button class="kiosk-product-btn ${enCarrito ? 'selected' : ''}" data-id="${p.id}">
           <span class="product-name">${p.nombre}</span>
-          <span class="product-price">$${p.precio.toLocaleString()}</span>
+          <span class="product-price">$${(p.precio || 0).toLocaleString()}</span>
           ${enCarrito ? `<span class="product-qty">${enCarrito.cantidad}</span>` : ''}
         </button>
       `;
@@ -387,6 +489,11 @@ const KIOSQUERO_ESCANEAR = {
   },
 
   agregarAlCarrito(productoId) {
+    const bloqueados = this.alumnoActual?.productosBloqueados || [];
+    if (bloqueados.includes(productoId)) {
+      alert('⛔ Producto bloqueado para este alumno');
+      return;
+    }
     const existe = this.carrito.find(c => c.productoId === productoId);
     const producto = this.productos.find(p => p.id === productoId);
     if (!producto) return;

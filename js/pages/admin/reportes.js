@@ -14,7 +14,7 @@ const ADMIN_REPORTES = {
           <div class="stat-card primary">
             <span class="stat-icon">💰</span>
             <div class="stat-label">Ventas Totales (Período)</div>
-            <div class="stat-value">$${estadisticas.totalVentas.toLocaleString()}</div>
+            <div class="stat-value">$${(estadisticas.totalVentas || 0).toLocaleString()}</div>
           </div>
           <div class="stat-card success">
             <span class="stat-icon">📦</span>
@@ -24,7 +24,7 @@ const ADMIN_REPORTES = {
           <div class="stat-card warning">
             <span class="stat-icon">💳</span>
             <div class="stat-label">Saldo en Circulación</div>
-            <div class="stat-value">$${dashboard.totalCargado.toLocaleString()}</div>
+            <div class="stat-value">$${(dashboard.totalCargado || 0).toLocaleString()}</div>
           </div>
           <div class="stat-card">
             <span class="stat-icon">👶</span>

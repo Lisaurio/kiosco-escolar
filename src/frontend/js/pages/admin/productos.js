@@ -129,14 +129,19 @@ const ADMIN_PRODUCTOS = {
 
     overlay.querySelector('#cancelarProd').onclick = () => overlay.remove();
     overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-    overlay.querySelector('#scanBarcodeBtn').onclick = () => this.startBarcodeScanner();
+    let _scanning = false;
+    overlay.querySelector('#scanBarcodeBtn').onclick = () => {
+      if (_scanning) return;
+      _scanning = true;
+      this.startBarcodeScanner().finally(() => { _scanning = false; });
+    };
 
     overlay.querySelector('#productoForm').onsubmit = async (e) => {
       e.preventDefault();
       const data = {
         nombre: document.getElementById('prodNombre').value,
         categoria: document.getElementById('prodCategoria').value,
-        precio: parseInt(document.getElementById('prodPrecio').value),
+        precio: parseFloat(document.getElementById('prodPrecio').value) || 0,
         codigoBarras: document.getElementById('prodBarcode').value.trim() || '',
         kioscoId: document.getElementById('prodKiosco').value
       };

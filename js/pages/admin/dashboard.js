@@ -24,17 +24,17 @@ const ADMIN_DASHBOARD = {
           <div class="stat-card primary">
             <span class="stat-icon">💰</span>
             <div class="stat-label">Ventas Hoy</div>
-            <div class="stat-value">$${dashboard.ventasHoy.toLocaleString()}</div>
+            <div class="stat-value">$${(dashboard.ventasHoy || 0).toLocaleString()}</div>
           </div>
           <div class="stat-card success">
             <span class="stat-icon">📈</span>
             <div class="stat-label">Ventas del Mes</div>
-            <div class="stat-value">$${dashboard.ventasMes.toLocaleString()}</div>
+            <div class="stat-value">$${(dashboard.ventasMes || 0).toLocaleString()}</div>
           </div>
           <div class="stat-card warning">
             <span class="stat-icon">💳</span>
             <div class="stat-label">Saldo Total Cargado</div>
-            <div class="stat-value">$${dashboard.totalCargado.toLocaleString()}</div>
+            <div class="stat-value">$${(dashboard.totalCargado || 0).toLocaleString()}</div>
           </div>
           <div class="stat-card">
             <span class="stat-icon">👶</span>

@@ -72,14 +72,14 @@ const PADRE_CARGAR = {
         successEl.style.display = 'none';
 
         try {
-          const data = await API.cargarSaldo(alumnoId, monto);
-          successEl.textContent = data.mensaje;
+          await API.cargarSaldo(alumnoId, monto);
+          successEl.textContent = '✅ Saldo cargado correctamente';
           successEl.style.display = 'block';
           document.getElementById('saldoMonto').value = '';
 
           const select = document.getElementById('saldoAlumnoId');
           const h = await API.getUsuario(alumnoId);
-          select.options[select.selectedIndex].text = `${h.nombre} — $${h.saldo.toLocaleString()}`;
+          select.options[select.selectedIndex].text = `${h.nombre} — $${(h.saldo || 0).toLocaleString()}`;
 
           btn.disabled = false;
           btn.textContent = 'Cargar Saldo';

@@ -8,7 +8,7 @@ const ALUMNO_DASHBOARD = {
       const user = fresh.user;
       const compras = await API.getHistorial(`?alumnoId=${user.id}`);
 
-      const ultimas = compras.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+      const ultimas = compras.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 5);
 
       content.innerHTML = `
         <div class="stats-grid">
@@ -20,7 +20,7 @@ const ALUMNO_DASHBOARD = {
           <div class="stat-card success">
             <span class="stat-icon">🛒</span>
             <div class="stat-label">Compras Hoy</div>
-            <div class="stat-value">${compras.filter(c => new Date(c.createdAt).toDateString() === new Date().toDateString()).length}</div>
+            <div class="stat-value">${compras.filter(c => c.fecha && new Date(c.fecha).toDateString() === new Date().toDateString()).length}</div>
           </div>
           <div class="stat-card warning">
             <span class="stat-icon">📦</span>
@@ -40,20 +40,20 @@ const ALUMNO_DASHBOARD = {
             <div>
               <div class="card-title">Últimas Compras</div>
             </div>
-            <a href="#/padre/historial" class="btn btn-sm btn-outline">Ver todo</a>
+            <a href="#/alumno/historial" class="btn btn-sm btn-outline" style="display:none">Ver todo</a>
           </div>
           ${ultimas.length ? `
           <div class="table-container">
             <table>
               <thead><tr><th>Productos</th><th>Total</th><th>Fecha</th></tr></thead>
               <tbody>
-                ${ultimas.map(c => `
-                  <tr>
-                    <td>${c.items.map(i => i.nombre).join(', ')}</td>
-                    <td><strong>$${c.total.toLocaleString()}</strong></td>
-                    <td>${new Date(c.createdAt).toLocaleString()}</td>
-                  </tr>
-                `).join('')}
+                  ${ultimas.map(c => `
+                    <tr>
+                      <td>${(c.productos || []).map(i => i.nombre).join(', ')}</td>
+                      <td><strong>$${c.total.toLocaleString()}</strong></td>
+                      <td>${new Date(c.fecha).toLocaleString()}</td>
+                    </tr>
+                  `).join('')}
               </tbody>
             </table>
           </div>

@@ -10,6 +10,7 @@ const APP = {
     this.setupNotifPanel();
 
     window.addEventListener('hashchange', () => this.route());
+    this.setupOfflineBanner();
     this.route();
   },
 
@@ -63,6 +64,20 @@ const APP = {
       localStorage.setItem('theme', next);
       document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
     };
+  },
+
+  setupOfflineBanner() {
+    const banner = document.createElement('div');
+    banner.id = 'offlineBanner';
+    banner.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#F59E0B;color:#1a1a1a;text-align:center;padding:0.5rem 1rem;font-size:0.85rem;font-weight:600';
+    banner.textContent = '📡 Sin conexión — los cambios se sincronizarán automáticamente';
+    document.body.prepend(banner);
+    const toggle = () => {
+      banner.style.display = navigator.onLine ? 'none' : 'block';
+    };
+    window.addEventListener('online', () => { toggle(); setTimeout(() => window.location.reload(), 1000); });
+    window.addEventListener('offline', toggle);
+    toggle();
   },
 
   setupMenuToggle() {

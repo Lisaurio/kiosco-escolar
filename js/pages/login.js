@@ -48,8 +48,7 @@ const LOGIN = {
       errorEl.style.display = 'none';
 
       try {
-        const data = await API.login(email, password);
-        AUTH.login(email, password);
+        await AUTH.login(email, password);
         window.location.hash = AUTH.redirectToDashboard();
       } catch (err) {
         errorEl.textContent = err.message;

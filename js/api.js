@@ -1,210 +1,447 @@
 const API = {
-  _user() { return JSON.parse(sessionStorage.getItem('kiosco_user') || 'null'); },
-  _filterByKiosco(items) {
-    const user = this._user();
-    if (!user || user.rol === 'admin') return items;
-    return items.filter(i => i.kioscoId === user.kioscoId || i.kioscoId === user.kioscoId);
+  _db() { return firebase.firestore(); },
+  _col(name) { return this._db().collection(name); },
+  _user() {
+    try { return JSON.parse(sessionStorage.getItem('kiosco_user')); } catch { return null; }
   },
+  _now() { return new Date().toISOString(); },
 
-  login(email, password) {
-    const user = DB.query('usuarios', u => u.email === email && u.password === password && u.activo !== false)[0];
-    if (!user) return Promise.reject(new Error('Credenciales inválidas'));
-    const { password: _, ...safe } = user;
+  async login(email, password) {
+    const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+    const doc = await this._col('usuarios').doc(cred.user.uid).get();
+    if (!doc.exists) throw new Error('Usuario no encontrado');
+    const user = { id: doc.id, ...doc.data() };
+    if (user.activo === false) throw new Error('Usuario desactivado');
     sessionStorage.setItem('kiosco_user', JSON.stringify(user));
-    return Promise.resolve({ token: 'demo-token', usuario: safe });
+    const token = await cred.user.getIdToken();
+    return { token, usuario: user };
   },
 
-  register(data) {
-    const exists = DB.query('usuarios', u => u.email === data.email)[0];
-    if (exists) return Promise.reject(new Error('Email ya registrado'));
-    const user = DB.insert('usuarios', { ...data, activo: true });
-    const { password: _, ...safe } = user;
-    sessionStorage.setItem('kiosco_user', JSON.stringify(user));
-    return Promise.resolve({ token: 'demo-token', usuario: safe });
+  async register(data) {
+    const cred = await firebase.auth().createUserWithEmailAndPassword(data.email, data.password);
+    const { password, ...userData } = data;
+    const user = {
+      ...userData,
+      activo: true,
+      createdAt: this._now(),
+      updatedAt: this._now()
+    };
+    await this._col('usuarios').doc(cred.user.uid).set(user);
+    const saved = { id: cred.user.uid, ...user };
+    sessionStorage.setItem('kiosco_user', JSON.stringify(saved));
+    return { token: 'firebase-token', usuario: saved };
   },
 
-  me() {
+  async me() {
     const user = this._user();
-    if (!user) return Promise.reject(new Error('No autenticado'));
-    const { password: _, ...safe } = user;
-    return Promise.resolve(safe);
+    if (!user) throw new Error('No autenticado');
+    return { user };
   },
 
-  getUsuarios(params = '') {
-    let list = DB.getAll('usuarios').map(u => { const { password, ...rest } = u; return rest; });
+  async getUsuarios(params = '') {
     const url = new URL('http://x' + params);
-    if (url.searchParams.get('rol')) list = list.filter(u => u.rol === url.searchParams.get('rol'));
-    return Promise.resolve(list);
+    let query = this._col('usuarios');
+    const rol = url.searchParams.get('rol');
+    if (rol) query = query.where('rol', '==', rol);
+    const snap = await query.get();
+    const list = [];
+    snap.forEach(doc => {
+      const { password, ...rest } = doc.data();
+      list.push({ id: doc.id, ...rest });
+    });
+    return list;
   },
 
-  getUsuario(id) {
-    const u = DB.getById('usuarios', id);
-    if (!u) return Promise.reject(new Error('Usuario no encontrado'));
-    const { password, ...safe } = u;
-    return Promise.resolve(safe);
+  async getUsuario(id) {
+    const doc = await this._col('usuarios').doc(id).get();
+    if (!doc.exists) throw new Error('Usuario no encontrado');
+    const { password, ...safe } = doc.data();
+    return { id: doc.id, ...safe };
   },
 
-  crearUsuario(data) {
-    const user = DB.insert('usuarios', data);
-    const { password, ...safe } = user;
-    return Promise.resolve(safe);
+  async crearUsuario(data) {
+    if (data.email && data.password) {
+      const cred = await firebase.auth().createUserWithEmailAndPassword(data.email, data.password);
+      const { password, ...userData } = data;
+      userData.createdAt = this._now();
+      userData.updatedAt = this._now();
+      await this._col('usuarios').doc(cred.user.uid).set(userData);
+      return { id: cred.user.uid, ...userData };
+    }
+    const ref = await this._col('usuarios').add({
+      ...data,
+      activo: data.activo !== false,
+      createdAt: this._now(),
+      updatedAt: this._now()
+    });
+    const doc = await ref.get();
+    return { id: doc.id, ...doc.data() };
   },
 
-  actualizarUsuario(id, data) {
-    const user = DB.update('usuarios', id, data);
-    if (!user) return Promise.reject(new Error('Usuario no encontrado'));
-    const { password, ...safe } = user;
-    return Promise.resolve(safe);
+  async actualizarUsuario(id, data) {
+    const updates = { ...data, updatedAt: this._now() };
+    delete updates.id;
+    await this._col('usuarios').doc(id).update(updates);
+    const doc = await this._col('usuarios').doc(id).get();
+    const { password, ...safe } = doc.data();
+    return { id: doc.id, ...safe };
   },
 
-  eliminarUsuario(id) { DB.delete('usuarios', id); return Promise.resolve({ success: true }); },
+  async eliminarUsuario(id) {
+    await this._col('usuarios').doc(id).update({ activo: false, updatedAt: this._now() });
+    return { success: true };
+  },
 
-  cargarSaldo(alumnoId, monto) {
-    const alumno = DB.getById('usuarios', alumnoId);
-    if (!alumno) return Promise.reject(new Error('Alumno no encontrado'));
+  async cargarSaldo(alumnoId, monto) {
+    const ref = this._col('usuarios').doc(alumnoId);
+    const snap = await ref.get();
+    if (!snap.exists) throw new Error('Alumno no encontrado');
+    const alumno = snap.data();
     const nuevo = (alumno.saldo || 0) + monto;
-    DB.update('usuarios', alumnoId, { saldo: nuevo });
-    DB.insert('notificaciones', { usuarioId: alumnoId, titulo: 'Saldo cargado', cuerpo: `Se cargó $${monto.toLocaleString()} a tu cuenta`, leida: false, fecha: new Date().toISOString() });
-    return Promise.resolve({ saldo: nuevo });
+    await ref.update({ saldo: nuevo, updatedAt: this._now() });
+    const notifData = { titulo: 'Saldo cargado', mensaje: `Se cargó $${monto.toLocaleString()} a tu cuenta`, leida: false, createdAt: this._now() };
+    await this._col('notificaciones').add({ ...notifData, usuarioId: alumnoId });
+    if (alumno.padreId) {
+      await this._col('notificaciones').add({ ...notifData, usuarioId: alumno.padreId, mensaje: `Cargaste $${monto.toLocaleString()} a ${alumno.nombre}` });
+    }
+    return { saldo: nuevo };
   },
 
-  getProductos(params = '') {
-    let list = DB.getAll('productos').filter(p => p.activo !== false);
+  async getProductos(params = '') {
     const url = new URL('http://x' + params);
-    if (url.searchParams.get('kioscoId')) list = list.filter(p => p.kioscoId === url.searchParams.get('kioscoId'));
-    if (url.searchParams.get('activo')) list = list.filter(p => p.activo !== false);
-    return Promise.resolve(list);
+    let query = this._col('productos').where('activo', '==', true);
+    const kioscoId = url.searchParams.get('kioscoId');
+    if (kioscoId) query = query.where('kioscoId', '==', kioscoId);
+    const snap = await query.get();
+    const list = [];
+    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+    return list;
   },
 
-  getProducto(id) {
-    const p = DB.getById('productos', id);
-    if (!p) return Promise.reject(new Error('Producto no encontrado'));
-    return Promise.resolve(p);
+  async getProducto(id) {
+    const doc = await this._col('productos').doc(id).get();
+    if (!doc.exists) throw new Error('Producto no encontrado');
+    return { id: doc.id, ...doc.data() };
   },
 
-  crearProducto(data) { return Promise.resolve(DB.insert('productos', data)); },
-  actualizarProducto(id, data) {
-    const p = DB.update('productos', id, data);
-    if (!p) return Promise.reject(new Error('Producto no encontrado'));
-    return Promise.resolve(p);
-  },
-  eliminarProducto(id) { DB.delete('productos', id); return Promise.resolve({ success: true }); },
-  getCategorias() {
-    const cats = [...new Set(DB.getAll('productos').map(p => p.categoria).filter(Boolean))];
-    return Promise.resolve(cats);
+  async getProductoPorBarcode(codigo) {
+    const snap = await this._col('productos')
+      .where('codigoBarras', '==', codigo)
+      .where('activo', '==', true)
+      .limit(1)
+      .get();
+    if (snap.empty) return null;
+    const doc = snap.docs[0];
+    return { id: doc.id, ...doc.data() };
   },
 
-  registrarCompra(data) {
+  async crearProducto(data) {
+    const ref = await this._col('productos').add({
+      ...data,
+      activo: true,
+      createdAt: this._now(),
+      updatedAt: this._now()
+    });
+    const doc = await ref.get();
+    return { id: doc.id, ...doc.data() };
+  },
+
+  async actualizarProducto(id, data) {
+    const updates = { ...data, updatedAt: this._now() };
+    delete updates.id;
+    await this._col('productos').doc(id).update(updates);
+    const doc = await this._col('productos').doc(id).get();
+    return { id: doc.id, ...doc.data() };
+  },
+
+  async eliminarProducto(id) {
+    await this._col('productos').doc(id).update({ activo: false, updatedAt: this._now() });
+    return { success: true };
+  },
+
+  async getCategorias() {
+    const snap = await this._col('productos').where('activo', '==', true).get();
+    const cats = new Set();
+    snap.forEach(doc => {
+      if (doc.data().categoria) cats.add(doc.data().categoria);
+    });
+    return [...cats];
+  },
+
+  async registrarCompra(data) {
     const user = this._user();
-    const alumno = DB.getById('usuarios', data.alumnoId);
-    if (!alumno) return Promise.reject(new Error('Alumno no encontrado'));
+    const alumnoRef = this._col('usuarios').doc(data.alumnoId);
+    const alumnoSnap = await alumnoRef.get();
+    if (!alumnoSnap.exists) throw new Error('Alumno no encontrado');
+    const alumno = alumnoSnap.data();
+
     const total = data.productos.reduce((s, p) => s + p.precio * p.cantidad, 0);
-    if ((alumno.saldo || 0) < total) return Promise.reject(new Error('Saldo insuficiente'));
-    DB.update('usuarios', data.alumnoId, { saldo: (alumno.saldo || 0) - total });
-    const compra = DB.insert('compras', {
+    if ((alumno.saldo || 0) < total) throw new Error('Saldo insuficiente');
+
+    await alumnoRef.update({ saldo: (alumno.saldo || 0) - total, updatedAt: this._now() });
+
+    const now = this._now();
+    const compra = {
       alumnoId: data.alumnoId,
+      alumnoNombre: alumno.nombre,
       kioscoId: alumno.kioscoId,
       productos: data.productos,
       total,
-      fecha: new Date().toISOString(),
-      creadoPor: user?.id || 'unknown',
-    });
+      fecha: now,
+      createdAt: now,
+      creadoPor: user?.id || 'unknown'
+    };
+    const compraRef = await this._col('compras').add(compra);
+
     if (alumno.padreId) {
-      DB.insert('notificaciones', {
+      await this._col('notificaciones').add({
         usuarioId: alumno.padreId,
         titulo: 'Compra realizada',
-        cuerpo: `${alumno.nombre} compró ${data.productos.map(p => `${p.nombre} x${p.cantidad}`).join(', ')} por $${total.toLocaleString()}`,
+        mensaje: `${alumno.nombre} compró ${data.productos.map(p => `${p.nombre} x${p.cantidad}`).join(', ')} por $${total.toLocaleString()}`,
         leida: false,
-        fecha: new Date().toISOString(),
+        createdAt: this._now()
       });
     }
-    return Promise.resolve(compra);
+
+    return { id: compraRef.id, ...compra };
   },
 
-  getHistorial(params = '') {
-    let list = DB.getAll('compras');
+  async getHistorial(params = '') {
     const url = new URL('http://x' + params);
-    if (url.searchParams.get('alumnoId')) list = list.filter(c => c.alumnoId === url.searchParams.get('alumnoId'));
-    list.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    return Promise.resolve(list);
+    let query = this._col('compras');
+    const alumnoId = url.searchParams.get('alumnoId');
+    if (alumnoId) query = query.where('alumnoId', '==', alumnoId);
+    query = query.orderBy('fecha', 'desc');
+    const snap = await query.get();
+    const list = [];
+    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+    return list;
   },
 
-  getVentasDia() {
-    const hoy = new Date().toISOString().slice(0, 10);
-    const ventas = DB.getAll('compras').filter(c => c.fecha.slice(0, 10) === hoy);
-    return Promise.resolve(ventas);
+  async getVentasDia() {
+    const hoy = this._now().slice(0, 10);
+    const snap = await this._col('compras').get();
+    const ventas = [];
+    snap.forEach(doc => {
+      const c = doc.data();
+      if (c.fecha && c.fecha.slice(0, 10) === hoy) {
+        ventas.push({ id: doc.id, ...c });
+      }
+    });
+    const total = ventas.reduce((s, v) => s + (v.total || 0), 0);
+    return { ventas, total, cantidad: ventas.length };
   },
 
-  getRanking() {
-    const ventas = DB.getAll('compras');
+  async getRanking() {
+    const snap = await this._col('compras').get();
     const counts = {};
-    ventas.forEach(c => {
-      c.productos.forEach(p => {
-        counts[p.productoId] = (counts[p.productoId] || 0) + p.cantidad;
+    snap.forEach(doc => {
+      const c = doc.data();
+      (c.productos || []).forEach(p => {
+        counts[p.productoId] = (counts[p.productoId] || 0) + (p.cantidad || 1);
       });
     });
-    const prods = DB.getAll('productos');
-    const ranking = Object.entries(counts)
-      .map(([id, cant]) => ({ productoId: id, nombre: (prods.find(p => p.id === id) || {}).nombre || '?', cantidad: cant }))
+    const prodSnap = await this._col('productos').get();
+    const prods = {};
+    prodSnap.forEach(doc => { prods[doc.id] = doc.data().nombre; });
+    return Object.entries(counts)
+      .map(([id, cant]) => ({ productoId: id, nombre: prods[id] || '?', cantidad: cant }))
       .sort((a, b) => b.cantidad - a.cantidad);
-    return Promise.resolve(ranking);
   },
 
-  getEscuelas() { return Promise.resolve(DB.getAll('escuelas')); },
-  getEscuela(id) { return Promise.resolve(DB.getById('escuelas', id)); },
-  crearEscuela(data) { return Promise.resolve(DB.insert('escuelas', data)); },
-  actualizarEscuela(id, data) { return Promise.resolve(DB.update('escuelas', id, data)); },
-  eliminarEscuela(id) { DB.delete('escuelas', id); return Promise.resolve({ success: true }); },
-
-  getKioscos(params = '') {
-    let list = DB.getAll('kioscos');
-    return Promise.resolve(list);
+  async getEscuelas() {
+    const snap = await this._col('escuelas').get();
+    const list = [];
+    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+    return list;
   },
-  getKiosco(id) { return Promise.resolve(DB.getById('kioscos', id)); },
-  crearKiosco(data) { return Promise.resolve(DB.insert('kioscos', data)); },
-  actualizarKiosco(id, data) { return Promise.resolve(DB.update('kioscos', id, data)); },
-  eliminarKiosco(id) { DB.delete('kioscos', id); return Promise.resolve({ success: true }); },
 
-  getNotificaciones() {
+  async getEscuela(id) {
+    const doc = await this._col('escuelas').doc(id).get();
+    if (!doc.exists) throw new Error('Escuela no encontrada');
+    return { id: doc.id, ...doc.data() };
+  },
+
+  async crearEscuela(data) {
+    const ref = await this._col('escuelas').add({
+      ...data,
+      activo: true,
+      createdAt: this._now()
+    });
+    const doc = await ref.get();
+    return { id: doc.id, ...doc.data() };
+  },
+
+  async actualizarEscuela(id, data) {
+    delete data.id;
+    await this._col('escuelas').doc(id).update(data);
+    const doc = await this._col('escuelas').doc(id).get();
+    return { id: doc.id, ...doc.data() };
+  },
+
+  async eliminarEscuela(id) {
+    await this._col('escuelas').doc(id).update({ activo: false });
+    return { success: true };
+  },
+
+  async getKioscos() {
+    const snap = await this._col('kioscos').get();
+    const list = [];
+    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+    return list;
+  },
+
+  async getKiosco(id) {
+    const doc = await this._col('kioscos').doc(id).get();
+    if (!doc.exists) throw new Error('Kiosco no encontrado');
+    return { id: doc.id, ...doc.data() };
+  },
+
+  async crearKiosco(data) {
+    const ref = await this._col('kioscos').add({
+      ...data,
+      activo: true,
+      createdAt: this._now()
+    });
+    const doc = await ref.get();
+    return { id: doc.id, ...doc.data() };
+  },
+
+  async actualizarKiosco(id, data) {
+    delete data.id;
+    await this._col('kioscos').doc(id).update(data);
+    const doc = await this._col('kioscos').doc(id).get();
+    return { id: doc.id, ...doc.data() };
+  },
+
+  async eliminarKiosco(id) {
+    await this._col('kioscos').doc(id).update({ activo: false });
+    return { success: true };
+  },
+
+  async getNotificaciones() {
     const user = this._user();
-    if (!user) return Promise.resolve([]);
-    let list = DB.query('notificaciones', n => n.usuarioId === user.id);
-    list.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    return Promise.resolve(list);
+    if (!user) return [];
+    const snap = await this._col('notificaciones')
+      .where('usuarioId', '==', user.id)
+      .orderBy('createdAt', 'desc')
+      .get();
+    const list = [];
+    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+    return list;
   },
-  getNoLeidas() { return this.getNotificaciones().then(list => list.filter(n => !n.leida)); },
-  marcarLeida(id) { DB.update('notificaciones', id, { leida: true }); return Promise.resolve({ success: true }); },
-  suscribirPush() { return Promise.resolve({ success: true }); },
 
-  getDashboard() {
+  async getNoLeidas() {
+    const list = await this.getNotificaciones();
+    return { count: list.filter(n => !n.leida).length };
+  },
+
+  async marcarLeida(id) {
+    await this._col('notificaciones').doc(id).update({ leida: true });
+    return { success: true };
+  },
+
+  suscribirPush() {
+    return Promise.resolve({ success: true });
+  },
+
+  async getDashboard() {
     const user = this._user();
-    const hoy = new Date().toISOString().slice(0, 10);
-    const compras = user.rol === 'admin' ? DB.getAll('compras') : DB.query('compras', c => c.kioscoId === user.kioscoId);
-    const ventasHoy = compras.filter(c => c.fecha.slice(0, 10) === hoy).reduce((s, c) => s + c.total, 0);
-    const comprasCount = compras.filter(c => c.fecha.slice(0, 10) === hoy).length;
-    const ventasMes = compras.filter(c => c.fecha.slice(0, 7) === hoy.slice(0, 7)).reduce((s, c) => s + c.total, 0);
-    const alumnosActivos = DB.query('usuarios', u => u.rol === 'alumno' && u.activo !== false).length;
+    const hoy = this._now().slice(0, 10);
+    const mes = hoy.slice(0, 7);
+
+    const comprasSnap = await this._col('compras').get();
+    const compras = [];
+    comprasSnap.forEach(doc => compras.push(doc.data()));
+
+    const filtradas = user?.rol === 'admin'
+      ? compras
+      : compras.filter(c => c.kioscoId === user?.kioscoId);
+
+    const ventasHoy = filtradas
+      .filter(c => c.fecha && c.fecha.slice(0, 10) === hoy)
+      .reduce((s, c) => s + (c.total || 0), 0) || 0;
+
+    const comprasCount = filtradas
+      .filter(c => c.fecha && c.fecha.slice(0, 10) === hoy)
+      .length;
+
+    const ventasMes = filtradas
+      .filter(c => c.fecha && c.fecha.slice(0, 7) === mes)
+      .reduce((s, c) => s + (c.total || 0), 0) || 0;
+
+    const usuariosSnap = await this._col('usuarios').get();
+    let alumnosActivos = 0;
+    let totalCargado = 0;
+    usuariosSnap.forEach(doc => {
+      const u = doc.data();
+      if (u.rol === 'alumno' && u.activo !== false) {
+        alumnosActivos++;
+        totalCargado += (u.saldo || 0);
+      }
+    });
 
     const counts = {};
-    compras.forEach(c => c.productos.forEach(p => { counts[p.productoId] = (counts[p.productoId] || 0) + p.cantidad; }));
-    const prods = DB.getAll('productos');
-    const masVendidos = Object.entries(counts)
-      .map(([id, cant]) => ({ productoId: id, nombre: (prods.find(p => p.id === id) || {}).nombre || '?', cantidad: cant }))
-      .sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
-
-    return Promise.resolve({ ventasHoy, comprasCount, ventasMes, alumnosActivos, masVendidos });
-  },
-
-  getEstadisticas() {
-    const compras = DB.getAll('compras');
-    const ventasPorDia = {};
-    compras.forEach(c => {
-      const dia = c.fecha.slice(0, 10);
-      ventasPorDia[dia] = (ventasPorDia[dia] || 0) + c.total;
+    filtradas.forEach(c => {
+      (c.productos || []).forEach(p => {
+        counts[p.productoId] = (counts[p.productoId] || 0) + (p.cantidad || 1);
+      });
     });
-    const ventas = Object.entries(ventasPorDia).map(([fecha, total]) => ({ fecha, total })).sort((a, b) => a.fecha.localeCompare(b.fecha));
-    return Promise.resolve({ ventas });
+
+    const prodSnap = await this._col('productos').get();
+    const prods = {};
+    prodSnap.forEach(doc => { prods[doc.id] = doc.data().nombre; });
+
+    const masVendidos = Object.entries(counts)
+      .map(([id, cant]) => ({ productoId: id, nombre: prods[id] || '?', cantidad: cant }))
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
+
+    return { ventasHoy, comprasCount, ventasMes, alumnosActivos, masVendidos, totalCargado };
   },
+
+  async getEstadisticas() {
+    const comprasSnap = await this._col('compras').get();
+    const escuelasSnap = await this._col('escuelas').get();
+    const usuariosSnap = await this._col('usuarios').get();
+    const kioscosSnap = await this._col('kioscos').get();
+
+    const escuelas = {};
+    escuelasSnap.forEach(d => { escuelas[d.id] = d.data().nombre; });
+    const kioscos = {};
+    kioscosSnap.forEach(d => { kioscos[d.id] = { nombre: d.data().nombre, escuelaId: d.data().escuelaId }; });
+    const alumnos = {};
+    usuariosSnap.forEach(d => {
+      const u = d.data();
+      if (u.rol === 'alumno') alumnos[d.id] = u;
+    });
+
+    let totalVentas = 0;
+    let totalCompras = 0;
+    const ventasPorDia = {};
+    const porEscuela = {};
+
+    comprasSnap.forEach(doc => {
+      const c = doc.data();
+      const t = c.total || 0;
+      totalVentas += t;
+      totalCompras++;
+
+      if (c.fecha) {
+        const dia = c.fecha.slice(0, 10);
+        ventasPorDia[dia] = (ventasPorDia[dia] || 0) + t;
+      }
+
+      if (c.kioscoId && kioscos[c.kioscoId]) {
+        const escId = kioscos[c.kioscoId].escuelaId;
+        if (escId && escuelas[escId]) {
+          porEscuela[escuelas[escId]] = (porEscuela[escuelas[escId]] || 0) + t;
+        }
+      }
+    });
+
+    return { totalVentas, totalCompras, ventasPorDia, porEscuela };
+  }
 };
 
 window.API = API;

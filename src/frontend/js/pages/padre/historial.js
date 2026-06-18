@@ -8,12 +8,17 @@ const PADRE_HISTORIAL = {
       const hijosIds = fresh.user.hijos || [];
       let allCompras = [];
 
+      const nombresMap = {};
       for (const hid of hijosIds) {
         const compras = await API.getHistorial(`?alumnoId=${hid}`);
         allCompras = allCompras.concat(compras);
+        if (!nombresMap[hid]) {
+          const h = await API.getUsuario(hid);
+          nombresMap[hid] = h.nombre;
+        }
       }
 
-      allCompras.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      allCompras.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
       content.innerHTML = `
         <div class="card">
@@ -25,7 +30,7 @@ const PADRE_HISTORIAL = {
             <div class="flex gap-1">
               <select class="form-select form-select-sm" id="historialFiltro" style="width:auto">
                 <option value="">Todos los hijos</option>
-                ${hijosIds.map(id => `<option value="${id}">${id}</option>`).join('')}
+                ${hijosIds.map(id => `<option value="${id}">${nombresMap[id] || id}</option>`).join('')}
               </select>
             </div>
           </div>
@@ -43,10 +48,10 @@ const PADRE_HISTORIAL = {
               <tbody id="historialBody">
                 ${allCompras.map(c => `
                   <tr data-alumno="${c.alumnoId}">
-                    <td>${new Date(c.createdAt).toLocaleString()}</td>
+                    <td>${new Date(c.fecha).toLocaleString()}</td>
                     <td><strong>${c.alumnoNombre || '—'}</strong></td>
                     <td>
-                      ${c.items.map(i => `${i.nombre} x${i.cantidad} ($${(i.precio * i.cantidad).toLocaleString()})`).join('<br>')}
+                      ${(c.productos || []).map(i => `${i.nombre} x${i.cantidad} ($${(i.precio * i.cantidad).toLocaleString()})`).join('<br>')}
                     </td>
                     <td><strong>$${c.total.toLocaleString()}</strong></td>
                   </tr>

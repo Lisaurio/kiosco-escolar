@@ -35,8 +35,8 @@ const KIOSQUERO_VENTAS = {
                 <tbody>
                   ${ventasDia.ventas.map(v => `
                     <tr>
-                      <td>${new Date(v.createdAt).toLocaleTimeString()}</td>
-                      <td>${v.items.map(i => i.nombre).join(', ')}</td>
+                      <td>${new Date(v.fecha).toLocaleTimeString()}</td>
+                      <td>${v.productos.map(i => i.nombre).join(', ')}</td>
                       <td><strong>$${v.total.toLocaleString()}</strong></td>
                     </tr>
                   `).join('')}
@@ -60,7 +60,7 @@ const KIOSQUERO_VENTAS = {
                       <td>${i + 1}</td>
                       <td><strong>${p.nombre}</strong></td>
                       <td>${p.cantidad}</td>
-                      <td>$${p.total.toLocaleString()}</td>
+                      <td>—</td>
                     </tr>
                   `).join('')}
                 </tbody>

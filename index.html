@@ -7,12 +7,14 @@
   <meta name="description" content="Gestión de compras escolares sin efectivo">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <base href="/kiosco-escolar/">
-  <link rel="manifest" href="manifest.json?v=4">
-  <link rel="icon" href="assets/icons/icon-192.svg?v=4" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.svg?v=4">
+  <script>
+    (function(){var p=location.pathname;var b=p.replace(/\/[^/]*$/,'/');if(!b.endsWith('/'))b+='/';document.write('<base href="'+b+'">')})();
+  </script>
+  <link rel="manifest" href="manifest.json?v=3">
+  <link rel="icon" href="assets/icons/icon-192.svg?v=3" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.svg?v=3">
   <title>Kiosco Escolar</title>
-  <link rel="stylesheet" href="css/styles.css?v=4">
+  <link rel="stylesheet" href="css/styles.css?v=3">
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -22,10 +24,10 @@
 </head>
 <body>
   <div id="app"></div>
-  <script src="js/firebase-config.js?v=4"></script>
-  <script src="js/api.js?v=4"></script>
-  <script src="js/auth.js?v=4"></script>
-  <script src="js/app.js?v=4"></script>
+  <script src="js/firebase-config.js?v=3"></script>
+  <script src="js/api.js?v=3"></script>
+  <script src="js/auth.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
   <script>
     window.seedFirestore = async function () {
       if (typeof firebase === 'undefined') { alert('Firebase no cargado'); return; }
@@ -35,6 +37,7 @@
         await firebase.auth().signOut().catch(()=>{});
         await sleep(500);
 
+        // 1. Crear ADMIN primero (así estamos autenticados para el resto)
         alert('Paso 1/5: Creando usuario admin...');
         let adminUid;
         try {
@@ -49,12 +52,14 @@
         }
         await db.collection('usuarios').doc(adminUid).set({ email:'admin@kiosco.com', nombre:'Admin', rol:'admin', activo:true, telefono:'', createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
 
+        // 2. Escuelas y kioscos (autenticados como admin)
         alert('Paso 2/5: Creando escuelas y kioscos...');
         const e1 = await db.collection('escuelas').add({ nombre:'Escuela Primaria N°1', activo:true });
         const e2 = await db.collection('escuelas').add({ nombre:'Escuela Secundaria N°3', activo:true });
         const k1 = await db.collection('kioscos').add({ nombre:'Kiosco Central', escuelaId:e1.id, activo:true });
         const k2 = await db.collection('kioscos').add({ nombre:'Kiosco Secundaria', escuelaId:e2.id, activo:true });
 
+        // 3. Productos (autenticados como admin)
         alert('Paso 3/5: Creando productos...');
         const prods = [
           ['Alfajor',800,'Golosinas','7791234567890'],
@@ -73,6 +78,7 @@
           await db.collection('productos').add({ nombre, precio, categoria, codigoBarras, kioscoId:k1.id, activo:true, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
         }
 
+        // 4. Resto de usuarios (cada uno autenticándose)
         alert('Paso 4/5: Creando usuarios restantes...');
         const otros = [
           ['kiosco@kiosco.com','kiosco123','Kiosco Central','kiosquero',k1.id],
@@ -102,6 +108,7 @@
           ids.push(cred.user.uid);
         }
 
+        // 5. Vincular padre-hijos
         alert('Paso 5/5: Vinculando padres e hijos...');
         if (ids[2] && ids[3] && ids[4]) {
           await db.collection('usuarios').doc(ids[2]).update({ hijos: [ids[3], ids[4]] });
@@ -109,6 +116,7 @@
           await db.collection('usuarios').doc(ids[4]).update({ padreId: ids[2] });
         }
 
+        // Volver a admin
         await firebase.auth().signOut().catch(()=>{});
         await sleep(300);
 

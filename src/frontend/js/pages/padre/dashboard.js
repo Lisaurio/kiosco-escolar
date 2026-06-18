@@ -21,12 +21,12 @@ const PADRE_DASHBOARD = {
 
         const hoy = new Date().toDateString();
         totalGastadoHoy += compras
-          .filter(c => new Date(c.createdAt).toDateString() === hoy)
-          .reduce((s, c) => s + c.total, 0);
+          .filter(c => c.fecha && new Date(c.fecha).toDateString() === hoy)
+          .reduce((s, c) => s + (c.total || 0), 0);
       }
 
       const totalCompras = allCompras.length;
-      const ultimas = allCompras.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+      const ultimas = allCompras.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 5);
 
       content.innerHTML = `
         <div class="stats-grid">
@@ -67,14 +67,14 @@ const PADRE_DASHBOARD = {
                 <tr><th>Alumno</th><th>Productos</th><th>Total</th><th>Fecha</th></tr>
               </thead>
               <tbody>
-                ${ultimas.map(c => `
-                  <tr>
-                    <td><strong>${c.alumnoNombre || '—'}</strong></td>
-                    <td>${c.items.map(i => i.nombre).join(', ')}</td>
-                    <td><strong>$${c.total.toLocaleString()}</strong></td>
-                    <td>${new Date(c.createdAt).toLocaleString()}</td>
-                  </tr>
-                `).join('')}
+                  ${ultimas.map(c => `
+                    <tr>
+                      <td><strong>${c.alumnoNombre || '—'}</strong></td>
+                      <td>${(c.productos || []).map(i => i.nombre).join(', ')}</td>
+                      <td><strong>$${c.total.toLocaleString()}</strong></td>
+                      <td>${new Date(c.fecha).toLocaleString()}</td>
+                    </tr>
+                  `).join('')}
               </tbody>
             </table>
           </div>

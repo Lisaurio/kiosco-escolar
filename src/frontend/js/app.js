@@ -3,8 +3,7 @@ const APP = {
   pages: {},
 
   async init() {
-    await DB.init();
-
+    await AUTH.init();
     this.renderShell();
     this.setupTheme();
     this.setupMenuToggle();

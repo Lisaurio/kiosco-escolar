@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kiosco-v4';
+const CACHE_NAME = 'kiosco-v5';
 const ASSETS = [
   'css/styles.css',
   'js/app.js',

@@ -1,7 +1,5 @@
-const CACHE_NAME = 'kiosco-v3';
+const CACHE_NAME = 'kiosco-v4';
 const ASSETS = [
-  './',
-  'index.html',
   'css/styles.css',
   'js/app.js',
   'js/auth.js',
@@ -49,6 +47,10 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).catch(() => caches.match('index.html')));
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );

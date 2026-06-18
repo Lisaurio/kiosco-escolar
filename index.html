@@ -8,20 +8,121 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <base href="/kiosco-escolar/">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="assets/icons/icon-192.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.svg">
+  <link rel="manifest" href="manifest.json?v=3">
+  <link rel="icon" href="assets/icons/icon-192.svg?v=3" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.svg?v=3">
   <title>Kiosco Escolar</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=3">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
   <div id="app"></div>
-  <script src="js/db.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/firebase-config.js?v=3"></script>
+  <script src="js/api.js?v=3"></script>
+  <script src="js/auth.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
+  <script>
+    window.seedFirestore = async function () {
+      if (typeof firebase === 'undefined') { alert('Firebase no cargado'); return; }
+      const db = firebase.firestore();
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+      try {
+        await firebase.auth().signOut().catch(()=>{});
+        await sleep(500);
+
+        alert('Paso 1/5: Creando usuario admin...');
+        let adminUid;
+        try {
+          const cred = await firebase.auth().createUserWithEmailAndPassword('admin@kiosco.com', 'admin123');
+          adminUid = cred.user.uid;
+        } catch(e) {
+          if (e.code === 'auth/email-already-in-use') {
+            const r = await firebase.auth().signInWithEmailAndPassword('admin@kiosco.com', 'admin123');
+            adminUid = r.user.uid;
+            alert('Admin ya existe, iniciando sesión...');
+          } else throw e;
+        }
+        await db.collection('usuarios').doc(adminUid).set({ email:'admin@kiosco.com', nombre:'Admin', rol:'admin', activo:true, telefono:'', createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+
+        alert('Paso 2/5: Creando escuelas y kioscos...');
+        const e1 = await db.collection('escuelas').add({ nombre:'Escuela Primaria N°1', activo:true });
+        const e2 = await db.collection('escuelas').add({ nombre:'Escuela Secundaria N°3', activo:true });
+        const k1 = await db.collection('kioscos').add({ nombre:'Kiosco Central', escuelaId:e1.id, activo:true });
+        const k2 = await db.collection('kioscos').add({ nombre:'Kiosco Secundaria', escuelaId:e2.id, activo:true });
+
+        alert('Paso 3/5: Creando productos...');
+        const prods = [
+          ['Alfajor',800,'Golosinas','7791234567890'],
+          ['Caramelo',100,'Golosinas','7791234567891'],
+          ['Chicle',100,'Golosinas',''],
+          ['Galletitas',500,'Snacks','7791234567892'],
+          ['Papas Fritas',600,'Snacks','7791234567893'],
+          ['Agua',400,'Bebidas','7791234567894'],
+          ['Jugo',500,'Bebidas','7791234567895'],
+          ['Gaseosa',700,'Bebidas','7791234567896'],
+          ['Pizza',1500,'Comida',''],
+          ['Sandwich',1200,'Comida',''],
+          ['Empanada',500,'Comida',''],
+        ];
+        for (const [nombre, precio, categoria, codigoBarras] of prods) {
+          await db.collection('productos').add({ nombre, precio, categoria, codigoBarras, kioscoId:k1.id, activo:true, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+        }
+
+        alert('Paso 4/5: Creando usuarios restantes...');
+        const otros = [
+          ['kiosco@kiosco.com','kiosco123','Kiosco Central','kiosquero',k1.id],
+          ['padre@kiosco.com','padre123','Carlos Pérez','padre',null],
+          ['juan@kiosco.com','juan123','Juan Pérez','alumno',k1.id],
+          ['maria@kiosco.com','maria123','María Pérez','alumno',k1.id],
+        ];
+        const ids = [adminUid];
+        for (const [email, pass, nombre, rol, kioscoId] of otros) {
+          await firebase.auth().signOut().catch(()=>{});
+          await sleep(400);
+          const cred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
+          const now = new Date().toISOString();
+          const data = { email, nombre, rol, activo:true, telefono:'', createdAt:now, updatedAt:now };
+          if (kioscoId) data.kioscoId = kioscoId;
+          if (rol === 'alumno') {
+            data.codigoNumerico = email === 'juan@kiosco.com' ? '123456' : '789012';
+            data.saldo = email === 'juan@kiosco.com' ? 1500 : 200;
+            data.productosBloqueados = [];
+            data.congelado = false;
+            data.limiteDiario = null;
+            data.codigoQR = cred.user.uid;
+            data.escuelaId = e1.id;
+            data.kioscoId = k1.id;
+          }
+          await db.collection('usuarios').doc(cred.user.uid).set(data);
+          ids.push(cred.user.uid);
+        }
+
+        alert('Paso 5/5: Vinculando padres e hijos...');
+        if (ids[2] && ids[3] && ids[4]) {
+          await db.collection('usuarios').doc(ids[2]).update({ hijos: [ids[3], ids[4]] });
+          await db.collection('usuarios').doc(ids[3]).update({ padreId: ids[2] });
+          await db.collection('usuarios').doc(ids[4]).update({ padreId: ids[2] });
+        }
+
+        await firebase.auth().signOut().catch(()=>{});
+        await sleep(300);
+
+        alert('✅ ¡DATOS DE DEMO CREADOS CON ÉXITO!\n\nUsuarios:\nadmin@kiosco.com / admin123\nkiosco@kiosco.com / kiosco123\npadre@kiosco.com / padre123\njuan@kiosco.com / juan123\nmaria@kiosco.com / maria123\n\nAhora iniciá sesión con admin@kiosco.com');
+      } catch(e) {
+        alert('❌ ERROR: '+e.message+'\n\nRevisá la consola (F12) para más detalles');
+        console.error(e);
+      }
+    };
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>

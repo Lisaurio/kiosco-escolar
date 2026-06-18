@@ -281,6 +281,8 @@ const KIOSQUERO_ESCANEAR = {
       return;
     }
 
+    const bloqueados = alumno.productosBloqueados || [];
+
     content.innerHTML = `
       <div id="ventaHeader" class="card mb-1" style="background:var(--primary);color:white;border:none;padding:0.65rem 1rem">
         <div class="flex items-center justify-between">
@@ -291,6 +293,11 @@ const KIOSQUERO_ESCANEAR = {
           <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:white;border:none" onclick="KIOSQUERO_ESCANEAR.render(document.getElementById('pageContent'), document.getElementById('pageTitle'))">✕</button>
         </div>
       </div>
+      ${bloqueados.length ? `
+      <div id="bloqueadosWarning" class="alert alert-warning" style="font-size:0.8rem;padding:0.5rem 0.65rem;margin-bottom:0.5rem">
+        ⛔ Productos bloqueados para <strong>${alumno.nombre}</strong>:
+        <span style="display:inline-block;margin-top:0.2rem" id="bloqueadosList"></span>
+      </div>` : ''}
 
       <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem">
         <input class="form-input" type="text" id="filtroProductos" placeholder="🔍 Buscar producto..." autofocus style="flex:1;font-size:1rem;padding:0.5rem 0.75rem;border-width:2px">
@@ -345,6 +352,11 @@ const KIOSQUERO_ESCANEAR = {
       });
 
       this.renderProductos('todas');
+
+      const bloqueadosList = document.getElementById('bloqueadosList');
+      if (bloqueadosList) {
+        bloqueadosList.textContent = productos.filter(p => bloqueados.includes(p.id)).map(p => p.nombre).join(', ') || '—';
+      }
 
       document.getElementById('filtroProductos').oninput = () => {
         const activeCat = document.querySelector('#categoriasTabs .tab.active');
@@ -422,6 +434,11 @@ const KIOSQUERO_ESCANEAR = {
     try {
       const producto = await API.getProductoPorBarcode(codigo);
       if (producto) {
+        const bloqueados = this.alumnoActual?.productosBloqueados || [];
+        if (bloqueados.includes(producto.id)) {
+          alert('⛔ ' + producto.nombre + ' — Producto bloqueado para este alumno');
+          return;
+        }
         const existe = this.carrito.find(c => c.productoId === producto.id);
         if (existe) {
           existe.cantidad++;
@@ -472,6 +489,11 @@ const KIOSQUERO_ESCANEAR = {
   },
 
   agregarAlCarrito(productoId) {
+    const bloqueados = this.alumnoActual?.productosBloqueados || [];
+    if (bloqueados.includes(productoId)) {
+      alert('⛔ Producto bloqueado para este alumno');
+      return;
+    }
     const existe = this.carrito.find(c => c.productoId === productoId);
     const producto = this.productos.find(p => p.id === productoId);
     if (!producto) return;

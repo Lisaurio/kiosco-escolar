@@ -26,12 +26,6 @@ const ASSETS = [
   'js/pages/admin/reportes.js',
   'assets/icons/icon-192.svg',
   'assets/icons/icon-512.svg',
-  'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js',
-  'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js',
-  'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js'
 ];
 
 self.addEventListener('install', event => {

@@ -35,7 +35,7 @@ const API = {
   async me() {
     const user = this._user();
     if (!user) throw new Error('No autenticado');
-    return user;
+    return { user };
   },
 
   async getUsuarios(params = '') {
@@ -99,13 +99,11 @@ const API = {
     const alumno = snap.data();
     const nuevo = (alumno.saldo || 0) + monto;
     await ref.update({ saldo: nuevo, updatedAt: this._now() });
-    await this._col('notificaciones').add({
-      usuarioId: alumnoId,
-      titulo: 'Saldo cargado',
-      mensaje: `Se cargó $${monto.toLocaleString()} a tu cuenta`,
-      leida: false,
-      createdAt: this._now()
-    });
+    const notifData = { titulo: 'Saldo cargado', mensaje: `Se cargó $${monto.toLocaleString()} a tu cuenta`, leida: false, createdAt: this._now() };
+    await this._col('notificaciones').add({ ...notifData, usuarioId: alumnoId });
+    if (alumno.padreId) {
+      await this._col('notificaciones').add({ ...notifData, usuarioId: alumno.padreId, mensaje: `Cargaste $${monto.toLocaleString()} a ${alumno.nombre}` });
+    }
     return { saldo: nuevo };
   },
 
@@ -182,12 +180,15 @@ const API = {
 
     await alumnoRef.update({ saldo: (alumno.saldo || 0) - total, updatedAt: this._now() });
 
+    const now = this._now();
     const compra = {
       alumnoId: data.alumnoId,
+      alumnoNombre: alumno.nombre,
       kioscoId: alumno.kioscoId,
       productos: data.productos,
       total,
-      fecha: this._now(),
+      fecha: now,
+      createdAt: now,
       creadoPor: user?.id || 'unknown'
     };
     const compraRef = await this._col('compras').add(compra);
@@ -227,7 +228,8 @@ const API = {
         ventas.push({ id: doc.id, ...c });
       }
     });
-    return ventas;
+    const total = ventas.reduce((s, v) => s + (v.total || 0), 0);
+    return { ventas, total, cantidad: ventas.length };
   },
 
   async getRanking() {
@@ -331,7 +333,7 @@ const API = {
 
   async getNoLeidas() {
     const list = await this.getNotificaciones();
-    return list.filter(n => !n.leida);
+    return { count: list.filter(n => !n.leida).length };
   },
 
   async marcarLeida(id) {

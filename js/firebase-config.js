@@ -7,3 +7,11 @@ const firebaseConfig = {
   appId: "1:1071022516934:web:4e6d3f149437fbb67285c7"
 };
 try { firebase.initializeApp(firebaseConfig); } catch (e) { console.error('Firebase init error:', e); }
+
+try {
+  firebase.firestore().enablePersistence({ synchronizeTabs: true });
+} catch (e) {
+  if (e.code !== 'failed-precondition' && e.code !== 'unimplemented') {
+    console.error('Firestore persistence error:', e);
+  }
+}
